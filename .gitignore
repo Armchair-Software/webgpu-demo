@@ -1,0 +1,14 @@
+*.layout
+*.depend
+
+build
+build_rel
+deploy
+
+CMakeFiles
+CMakeCache.txt
+git_version.h
+
+.vscode/settings.json
+
+render/shaders/*.glsl.h
