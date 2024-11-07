@@ -16,5 +16,5 @@ port=6932
 
 echo "Launching $launch_html with emrun..."
 #emrun --port "$port" "$launch_html" --browser /home/slowriot/usr/firefox-nightly/firefox-bin --browser_args="--new-window"
-emrun --port "$port" "$launch_html" --browser /usr/lib/chromium/chromium --browser_args='--new-window'
+emrun --port "$port" "$launch_html" --browser /usr/lib/chromium/chromium --browser_args='--new-window --enable-unsafe-webgpu --enable-features=Vulkan'
 echo "Finished."
