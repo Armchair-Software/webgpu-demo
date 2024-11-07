@@ -4,6 +4,10 @@
 #include <emscripten.h>
 #include <emscripten/threading.h>
 #include <emscripten/val.h>
+#include <magic_enum/magic_enum.hpp>
+#define WEBGPU_CPP_IMPLEMENTATION
+//#include <webgpu.hpp>
+#include <webgpu/webgpu_cpp.h>
 #include "logstorm/logstorm.h"
 
 #ifdef BOOST_NO_EXCEPTIONS
@@ -31,8 +35,49 @@ private:
 
 void game_manager::run() {
   /// Launch the game pseudo-loop
-  //logger.add_sink<logstorm::sink::console>();
   logger << "Starting Armchair WebGPU Demo";
+
+  /*
+  wgpu::Instance instance{wgpu::createInstance()};
+  if(!instance) throw std::runtime_error{"Could not initialize WebGPU"};
+
+  logger << "DEBUG: WebGPU instance " << instance;
+
+  wgpu::RequestAdapterOptions options{wgpu::Default};
+  options.powerPreference = wgpu::PowerPreference::HighPerformance;
+
+  wgpu::RequestAdapterCallback callback{[&](wgpu::RequestAdapterStatus status, wgpu::Adapter adapter, char const *message) {
+    logger << "DEBUG: WebGPU callback called, status " << magic_enum::enum_name(status) << ", adapter " << adapter << ", message " << message;
+  }};
+
+  auto adapter{instance.requestAdapter(options, std::move(callback))};
+
+  logger << "DEBUG: WebGPU adapter " << adapter;
+  */
+
+
+
+
+  wgpu::Instance instance{wgpu::CreateInstance()};
+  if(!instance) throw std::runtime_error{"Could not initialize WebGPU"};
+
+  wgpu::RequestAdapterOptions options{
+    .powerPreference = wgpu::PowerPreference::HighPerformance,
+  };
+
+  wgpu::RequestAdapterCallback callback{[](WGPURequestAdapterStatus status, WGPUAdapterImpl *adapter, const char *message, void *data) {
+  //wgpu::RequestAdapterCallback callback{[](wgpu::RequestAdapterStatus status, WGPUAdapterImpl *adapter, const char *message, void *data) {
+    auto &game{*static_cast<game_manager*>(data)};
+    auto &logger{game.logger};
+    logger << "DEBUG: WebGPU callback called, status " << magic_enum::enum_name(status) << ", message " << message;
+  }};
+
+  instance.RequestAdapter(&options, callback, this);
+
+
+
+
+
 
   emscripten_set_main_loop_arg([](void *data){
     /// Main pseudo-loop dispatcher

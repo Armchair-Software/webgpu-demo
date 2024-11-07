@@ -210,6 +210,8 @@ target_link_options(client PRIVATE
   -sSTACK_SIZE=5mb
   -sWASM_BIGINT
   -sELIMINATE_DUPLICATE_FUNCTIONS=1
+  -sUSE_WEBGPU
+  # May be required: -sASYNCIFY
   -sUSE_GLFW=3
   -sFETCH=1
   -sUSE_FREETYPE=1
