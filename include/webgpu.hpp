@@ -148,537 +148,537 @@ using ShaderStageFlags = WGPUFlags;
 using TextureUsageFlags = WGPUFlags;
 
 // Enumerations
-enum class WGSLFeatureName: int {
-	Undefined = WGPUWGSLFeatureName_Undefined,
-	ReadonlyAndReadwriteStorageTextures = WGPUWGSLFeatureName_ReadonlyAndReadwriteStorageTextures,
-	Packed4x8IntegerDotProduct = WGPUWGSLFeatureName_Packed4x8IntegerDotProduct,
-	UnrestrictedPointerParameters = WGPUWGSLFeatureName_UnrestrictedPointerParameters,
-	PointerCompositeAccess = WGPUWGSLFeatureName_PointerCompositeAccess,
-	Force32 = WGPUWGSLFeatureName_Force32,
-};
-enum class AdapterType: int {
-	DiscreteGPU = WGPUAdapterType_DiscreteGPU,
-	IntegratedGPU = WGPUAdapterType_IntegratedGPU,
-	CPU = WGPUAdapterType_CPU,
-	Unknown = WGPUAdapterType_Unknown,
-	Force32 = WGPUAdapterType_Force32,
-};
-enum class AddressMode: int {
-	Undefined = WGPUAddressMode_Undefined,
-	ClampToEdge = WGPUAddressMode_ClampToEdge,
-	Repeat = WGPUAddressMode_Repeat,
-	MirrorRepeat = WGPUAddressMode_MirrorRepeat,
-	Force32 = WGPUAddressMode_Force32,
-};
-enum class BackendType: int {
-	Undefined = WGPUBackendType_Undefined,
-	Null = WGPUBackendType_Null,
-	WebGPU = WGPUBackendType_WebGPU,
-	D3D11 = WGPUBackendType_D3D11,
-	D3D12 = WGPUBackendType_D3D12,
-	Metal = WGPUBackendType_Metal,
-	Vulkan = WGPUBackendType_Vulkan,
-	OpenGL = WGPUBackendType_OpenGL,
-	OpenGLES = WGPUBackendType_OpenGLES,
-	Force32 = WGPUBackendType_Force32,
-};
-enum class BlendFactor: int {
-	Undefined = WGPUBlendFactor_Undefined,
-	Zero = WGPUBlendFactor_Zero,
-	One = WGPUBlendFactor_One,
-	Src = WGPUBlendFactor_Src,
-	OneMinusSrc = WGPUBlendFactor_OneMinusSrc,
-	SrcAlpha = WGPUBlendFactor_SrcAlpha,
-	OneMinusSrcAlpha = WGPUBlendFactor_OneMinusSrcAlpha,
-	Dst = WGPUBlendFactor_Dst,
-	OneMinusDst = WGPUBlendFactor_OneMinusDst,
-	DstAlpha = WGPUBlendFactor_DstAlpha,
-	OneMinusDstAlpha = WGPUBlendFactor_OneMinusDstAlpha,
-	SrcAlphaSaturated = WGPUBlendFactor_SrcAlphaSaturated,
-	Constant = WGPUBlendFactor_Constant,
-	OneMinusConstant = WGPUBlendFactor_OneMinusConstant,
-	Force32 = WGPUBlendFactor_Force32,
-};
-enum class BlendOperation: int {
-	Undefined = WGPUBlendOperation_Undefined,
-	Add = WGPUBlendOperation_Add,
-	Subtract = WGPUBlendOperation_Subtract,
-	ReverseSubtract = WGPUBlendOperation_ReverseSubtract,
-	Min = WGPUBlendOperation_Min,
-	Max = WGPUBlendOperation_Max,
-	Force32 = WGPUBlendOperation_Force32,
-};
-enum class BufferBindingType: int {
-	Undefined = WGPUBufferBindingType_Undefined,
-	Uniform = WGPUBufferBindingType_Uniform,
-	Storage = WGPUBufferBindingType_Storage,
-	ReadOnlyStorage = WGPUBufferBindingType_ReadOnlyStorage,
-	Force32 = WGPUBufferBindingType_Force32,
-};
-enum class BufferMapAsyncStatus: int {
-	Success = WGPUBufferMapAsyncStatus_Success,
-	ValidationError = WGPUBufferMapAsyncStatus_ValidationError,
-	Unknown = WGPUBufferMapAsyncStatus_Unknown,
-	DeviceLost = WGPUBufferMapAsyncStatus_DeviceLost,
-	DestroyedBeforeCallback = WGPUBufferMapAsyncStatus_DestroyedBeforeCallback,
-	UnmappedBeforeCallback = WGPUBufferMapAsyncStatus_UnmappedBeforeCallback,
-	MappingAlreadyPending = WGPUBufferMapAsyncStatus_MappingAlreadyPending,
-	OffsetOutOfRange = WGPUBufferMapAsyncStatus_OffsetOutOfRange,
-	SizeOutOfRange = WGPUBufferMapAsyncStatus_SizeOutOfRange,
-	Force32 = WGPUBufferMapAsyncStatus_Force32,
-};
-enum class BufferMapState: int {
-	Unmapped = WGPUBufferMapState_Unmapped,
-	Pending = WGPUBufferMapState_Pending,
-	Mapped = WGPUBufferMapState_Mapped,
-	Force32 = WGPUBufferMapState_Force32,
-};
-enum class CallbackMode: int {
-	WaitAnyOnly = WGPUCallbackMode_WaitAnyOnly,
-	AllowProcessEvents = WGPUCallbackMode_AllowProcessEvents,
-	AllowSpontaneous = WGPUCallbackMode_AllowSpontaneous,
-	Force32 = WGPUCallbackMode_Force32,
-};
-enum class CompareFunction: int {
-	Undefined = WGPUCompareFunction_Undefined,
-	Never = WGPUCompareFunction_Never,
-	Less = WGPUCompareFunction_Less,
-	Equal = WGPUCompareFunction_Equal,
-	LessEqual = WGPUCompareFunction_LessEqual,
-	Greater = WGPUCompareFunction_Greater,
-	NotEqual = WGPUCompareFunction_NotEqual,
-	GreaterEqual = WGPUCompareFunction_GreaterEqual,
-	Always = WGPUCompareFunction_Always,
-	Force32 = WGPUCompareFunction_Force32,
-};
-enum class CompilationInfoRequestStatus: int {
-	Success = WGPUCompilationInfoRequestStatus_Success,
-	Error = WGPUCompilationInfoRequestStatus_Error,
-	DeviceLost = WGPUCompilationInfoRequestStatus_DeviceLost,
-	Unknown = WGPUCompilationInfoRequestStatus_Unknown,
-	Force32 = WGPUCompilationInfoRequestStatus_Force32,
-};
-enum class CompilationMessageType: int {
-	Error = WGPUCompilationMessageType_Error,
-	Warning = WGPUCompilationMessageType_Warning,
-	Info = WGPUCompilationMessageType_Info,
-	Force32 = WGPUCompilationMessageType_Force32,
-};
-enum class CompositeAlphaMode: int {
-	Auto = WGPUCompositeAlphaMode_Auto,
-	Opaque = WGPUCompositeAlphaMode_Opaque,
-	Premultiplied = WGPUCompositeAlphaMode_Premultiplied,
-	Unpremultiplied = WGPUCompositeAlphaMode_Unpremultiplied,
-	Inherit = WGPUCompositeAlphaMode_Inherit,
-	Force32 = WGPUCompositeAlphaMode_Force32,
-};
-enum class CreatePipelineAsyncStatus: int {
-	Success = WGPUCreatePipelineAsyncStatus_Success,
-	ValidationError = WGPUCreatePipelineAsyncStatus_ValidationError,
-	InternalError = WGPUCreatePipelineAsyncStatus_InternalError,
-	DeviceLost = WGPUCreatePipelineAsyncStatus_DeviceLost,
-	DeviceDestroyed = WGPUCreatePipelineAsyncStatus_DeviceDestroyed,
-	Unknown = WGPUCreatePipelineAsyncStatus_Unknown,
-	Force32 = WGPUCreatePipelineAsyncStatus_Force32,
-};
-enum class CullMode: int {
-	Undefined = WGPUCullMode_Undefined,
-	None = WGPUCullMode_None,
-	Front = WGPUCullMode_Front,
-	Back = WGPUCullMode_Back,
-	Force32 = WGPUCullMode_Force32,
-};
-enum class DeviceLostReason: int {
-	Undefined = WGPUDeviceLostReason_Undefined,
-	Unknown = WGPUDeviceLostReason_Unknown,
-	Destroyed = WGPUDeviceLostReason_Destroyed,
-	Force32 = WGPUDeviceLostReason_Force32,
-};
-enum class ErrorFilter: int {
-	Validation = WGPUErrorFilter_Validation,
-	OutOfMemory = WGPUErrorFilter_OutOfMemory,
-	Internal = WGPUErrorFilter_Internal,
-	Force32 = WGPUErrorFilter_Force32,
-};
-enum class ErrorType: int {
-	NoError = WGPUErrorType_NoError,
-	Validation = WGPUErrorType_Validation,
-	OutOfMemory = WGPUErrorType_OutOfMemory,
-	Internal = WGPUErrorType_Internal,
-	Unknown = WGPUErrorType_Unknown,
-	DeviceLost = WGPUErrorType_DeviceLost,
-	Force32 = WGPUErrorType_Force32,
-};
-enum class FeatureName: int {
-	Undefined = WGPUFeatureName_Undefined,
-	DepthClipControl = WGPUFeatureName_DepthClipControl,
-	Depth32FloatStencil8 = WGPUFeatureName_Depth32FloatStencil8,
-	TimestampQuery = WGPUFeatureName_TimestampQuery,
-	TextureCompressionBC = WGPUFeatureName_TextureCompressionBC,
-	TextureCompressionETC2 = WGPUFeatureName_TextureCompressionETC2,
-	TextureCompressionASTC = WGPUFeatureName_TextureCompressionASTC,
-	IndirectFirstInstance = WGPUFeatureName_IndirectFirstInstance,
-	ShaderF16 = WGPUFeatureName_ShaderF16,
-	RG11B10UfloatRenderable = WGPUFeatureName_RG11B10UfloatRenderable,
-	BGRA8UnormStorage = WGPUFeatureName_BGRA8UnormStorage,
-	Float32Filterable = WGPUFeatureName_Float32Filterable,
-	Force32 = WGPUFeatureName_Force32,
-};
-enum class FilterMode: int {
-	Undefined = WGPUFilterMode_Undefined,
-	Nearest = WGPUFilterMode_Nearest,
-	Linear = WGPUFilterMode_Linear,
-	Force32 = WGPUFilterMode_Force32,
-};
-enum class FrontFace: int {
-	Undefined = WGPUFrontFace_Undefined,
-	CCW = WGPUFrontFace_CCW,
-	CW = WGPUFrontFace_CW,
-	Force32 = WGPUFrontFace_Force32,
-};
-enum class IndexFormat: int {
-	Undefined = WGPUIndexFormat_Undefined,
-	Uint16 = WGPUIndexFormat_Uint16,
-	Uint32 = WGPUIndexFormat_Uint32,
-	Force32 = WGPUIndexFormat_Force32,
-};
-enum class LoadOp: int {
-	Undefined = WGPULoadOp_Undefined,
-	Clear = WGPULoadOp_Clear,
-	Load = WGPULoadOp_Load,
-	Force32 = WGPULoadOp_Force32,
-};
-enum class MipmapFilterMode: int {
-	Undefined = WGPUMipmapFilterMode_Undefined,
-	Nearest = WGPUMipmapFilterMode_Nearest,
-	Linear = WGPUMipmapFilterMode_Linear,
-	Force32 = WGPUMipmapFilterMode_Force32,
-};
-enum class PowerPreference: int {
-	Undefined = WGPUPowerPreference_Undefined,
-	LowPower = WGPUPowerPreference_LowPower,
-	HighPerformance = WGPUPowerPreference_HighPerformance,
-	Force32 = WGPUPowerPreference_Force32,
-};
-enum class PresentMode: int {
-	Fifo = WGPUPresentMode_Fifo,
-	Immediate = WGPUPresentMode_Immediate,
-	Mailbox = WGPUPresentMode_Mailbox,
-	Force32 = WGPUPresentMode_Force32,
-};
-enum class PrimitiveTopology: int {
-	Undefined = WGPUPrimitiveTopology_Undefined,
-	PointList = WGPUPrimitiveTopology_PointList,
-	LineList = WGPUPrimitiveTopology_LineList,
-	LineStrip = WGPUPrimitiveTopology_LineStrip,
-	TriangleList = WGPUPrimitiveTopology_TriangleList,
-	TriangleStrip = WGPUPrimitiveTopology_TriangleStrip,
-	Force32 = WGPUPrimitiveTopology_Force32,
-};
-enum class QueryType: int {
-	Occlusion = WGPUQueryType_Occlusion,
-	Timestamp = WGPUQueryType_Timestamp,
-	Force32 = WGPUQueryType_Force32,
-};
-enum class QueueWorkDoneStatus: int {
-	Success = WGPUQueueWorkDoneStatus_Success,
-	Error = WGPUQueueWorkDoneStatus_Error,
-	Unknown = WGPUQueueWorkDoneStatus_Unknown,
-	DeviceLost = WGPUQueueWorkDoneStatus_DeviceLost,
-	Force32 = WGPUQueueWorkDoneStatus_Force32,
-};
-enum class RequestAdapterStatus: int {
-	Success = WGPURequestAdapterStatus_Success,
-	Unavailable = WGPURequestAdapterStatus_Unavailable,
-	Error = WGPURequestAdapterStatus_Error,
-	Unknown = WGPURequestAdapterStatus_Unknown,
-	Force32 = WGPURequestAdapterStatus_Force32,
-};
-enum class RequestDeviceStatus: int {
-	Success = WGPURequestDeviceStatus_Success,
-	Error = WGPURequestDeviceStatus_Error,
-	Unknown = WGPURequestDeviceStatus_Unknown,
-	Force32 = WGPURequestDeviceStatus_Force32,
-};
-enum class SType: int {
-	Invalid = WGPUSType_Invalid,
-	SurfaceDescriptorFromCanvasHTMLSelector = WGPUSType_SurfaceDescriptorFromCanvasHTMLSelector,
-	ShaderModuleSPIRVDescriptor = WGPUSType_ShaderModuleSPIRVDescriptor,
-	ShaderModuleWGSLDescriptor = WGPUSType_ShaderModuleWGSLDescriptor,
-	PrimitiveDepthClipControl = WGPUSType_PrimitiveDepthClipControl,
-	RenderPassDescriptorMaxDrawCount = WGPUSType_RenderPassDescriptorMaxDrawCount,
-	TextureBindingViewDimensionDescriptor = WGPUSType_TextureBindingViewDimensionDescriptor,
-	Force32 = WGPUSType_Force32,
-};
-enum class SamplerBindingType: int {
-	Undefined = WGPUSamplerBindingType_Undefined,
-	Filtering = WGPUSamplerBindingType_Filtering,
-	NonFiltering = WGPUSamplerBindingType_NonFiltering,
-	Comparison = WGPUSamplerBindingType_Comparison,
-	Force32 = WGPUSamplerBindingType_Force32,
-};
-enum class StencilOperation: int {
-	Undefined = WGPUStencilOperation_Undefined,
-	Keep = WGPUStencilOperation_Keep,
-	Zero = WGPUStencilOperation_Zero,
-	Replace = WGPUStencilOperation_Replace,
-	Invert = WGPUStencilOperation_Invert,
-	IncrementClamp = WGPUStencilOperation_IncrementClamp,
-	DecrementClamp = WGPUStencilOperation_DecrementClamp,
-	IncrementWrap = WGPUStencilOperation_IncrementWrap,
-	DecrementWrap = WGPUStencilOperation_DecrementWrap,
-	Force32 = WGPUStencilOperation_Force32,
-};
-enum class StorageTextureAccess: int {
-	Undefined = WGPUStorageTextureAccess_Undefined,
-	WriteOnly = WGPUStorageTextureAccess_WriteOnly,
-	ReadOnly = WGPUStorageTextureAccess_ReadOnly,
-	ReadWrite = WGPUStorageTextureAccess_ReadWrite,
-	Force32 = WGPUStorageTextureAccess_Force32,
-};
-enum class StoreOp: int {
-	Undefined = WGPUStoreOp_Undefined,
-	Store = WGPUStoreOp_Store,
-	Discard = WGPUStoreOp_Discard,
-	Force32 = WGPUStoreOp_Force32,
-};
-enum class SurfaceGetCurrentTextureStatus: int {
-	Success = WGPUSurfaceGetCurrentTextureStatus_Success,
-	Timeout = WGPUSurfaceGetCurrentTextureStatus_Timeout,
-	Outdated = WGPUSurfaceGetCurrentTextureStatus_Outdated,
-	Lost = WGPUSurfaceGetCurrentTextureStatus_Lost,
-	OutOfMemory = WGPUSurfaceGetCurrentTextureStatus_OutOfMemory,
-	DeviceLost = WGPUSurfaceGetCurrentTextureStatus_DeviceLost,
-	Force32 = WGPUSurfaceGetCurrentTextureStatus_Force32,
-};
-enum class TextureAspect: int {
-	Undefined = WGPUTextureAspect_Undefined,
-	All = WGPUTextureAspect_All,
-	StencilOnly = WGPUTextureAspect_StencilOnly,
-	DepthOnly = WGPUTextureAspect_DepthOnly,
-	Force32 = WGPUTextureAspect_Force32,
-};
-enum class TextureDimension: int {
-	Undefined = WGPUTextureDimension_Undefined,
-	_1D = WGPUTextureDimension_1D,
-	_2D = WGPUTextureDimension_2D,
-	_3D = WGPUTextureDimension_3D,
-	Force32 = WGPUTextureDimension_Force32,
-};
-enum class TextureFormat: int {
-	Undefined = WGPUTextureFormat_Undefined,
-	R8Unorm = WGPUTextureFormat_R8Unorm,
-	R8Snorm = WGPUTextureFormat_R8Snorm,
-	R8Uint = WGPUTextureFormat_R8Uint,
-	R8Sint = WGPUTextureFormat_R8Sint,
-	R16Uint = WGPUTextureFormat_R16Uint,
-	R16Sint = WGPUTextureFormat_R16Sint,
-	R16Float = WGPUTextureFormat_R16Float,
-	RG8Unorm = WGPUTextureFormat_RG8Unorm,
-	RG8Snorm = WGPUTextureFormat_RG8Snorm,
-	RG8Uint = WGPUTextureFormat_RG8Uint,
-	RG8Sint = WGPUTextureFormat_RG8Sint,
-	R32Float = WGPUTextureFormat_R32Float,
-	R32Uint = WGPUTextureFormat_R32Uint,
-	R32Sint = WGPUTextureFormat_R32Sint,
-	RG16Uint = WGPUTextureFormat_RG16Uint,
-	RG16Sint = WGPUTextureFormat_RG16Sint,
-	RG16Float = WGPUTextureFormat_RG16Float,
-	RGBA8Unorm = WGPUTextureFormat_RGBA8Unorm,
-	RGBA8UnormSrgb = WGPUTextureFormat_RGBA8UnormSrgb,
-	RGBA8Snorm = WGPUTextureFormat_RGBA8Snorm,
-	RGBA8Uint = WGPUTextureFormat_RGBA8Uint,
-	RGBA8Sint = WGPUTextureFormat_RGBA8Sint,
-	BGRA8Unorm = WGPUTextureFormat_BGRA8Unorm,
-	BGRA8UnormSrgb = WGPUTextureFormat_BGRA8UnormSrgb,
-	RGB10A2Uint = WGPUTextureFormat_RGB10A2Uint,
-	RGB10A2Unorm = WGPUTextureFormat_RGB10A2Unorm,
-	RG11B10Ufloat = WGPUTextureFormat_RG11B10Ufloat,
-	RGB9E5Ufloat = WGPUTextureFormat_RGB9E5Ufloat,
-	RG32Float = WGPUTextureFormat_RG32Float,
-	RG32Uint = WGPUTextureFormat_RG32Uint,
-	RG32Sint = WGPUTextureFormat_RG32Sint,
-	RGBA16Uint = WGPUTextureFormat_RGBA16Uint,
-	RGBA16Sint = WGPUTextureFormat_RGBA16Sint,
-	RGBA16Float = WGPUTextureFormat_RGBA16Float,
-	RGBA32Float = WGPUTextureFormat_RGBA32Float,
-	RGBA32Uint = WGPUTextureFormat_RGBA32Uint,
-	RGBA32Sint = WGPUTextureFormat_RGBA32Sint,
-	Stencil8 = WGPUTextureFormat_Stencil8,
-	Depth16Unorm = WGPUTextureFormat_Depth16Unorm,
-	Depth24Plus = WGPUTextureFormat_Depth24Plus,
-	Depth24PlusStencil8 = WGPUTextureFormat_Depth24PlusStencil8,
-	Depth32Float = WGPUTextureFormat_Depth32Float,
-	Depth32FloatStencil8 = WGPUTextureFormat_Depth32FloatStencil8,
-	BC1RGBAUnorm = WGPUTextureFormat_BC1RGBAUnorm,
-	BC1RGBAUnormSrgb = WGPUTextureFormat_BC1RGBAUnormSrgb,
-	BC2RGBAUnorm = WGPUTextureFormat_BC2RGBAUnorm,
-	BC2RGBAUnormSrgb = WGPUTextureFormat_BC2RGBAUnormSrgb,
-	BC3RGBAUnorm = WGPUTextureFormat_BC3RGBAUnorm,
-	BC3RGBAUnormSrgb = WGPUTextureFormat_BC3RGBAUnormSrgb,
-	BC4RUnorm = WGPUTextureFormat_BC4RUnorm,
-	BC4RSnorm = WGPUTextureFormat_BC4RSnorm,
-	BC5RGUnorm = WGPUTextureFormat_BC5RGUnorm,
-	BC5RGSnorm = WGPUTextureFormat_BC5RGSnorm,
-	BC6HRGBUfloat = WGPUTextureFormat_BC6HRGBUfloat,
-	BC6HRGBFloat = WGPUTextureFormat_BC6HRGBFloat,
-	BC7RGBAUnorm = WGPUTextureFormat_BC7RGBAUnorm,
-	BC7RGBAUnormSrgb = WGPUTextureFormat_BC7RGBAUnormSrgb,
-	ETC2RGB8Unorm = WGPUTextureFormat_ETC2RGB8Unorm,
-	ETC2RGB8UnormSrgb = WGPUTextureFormat_ETC2RGB8UnormSrgb,
-	ETC2RGB8A1Unorm = WGPUTextureFormat_ETC2RGB8A1Unorm,
-	ETC2RGB8A1UnormSrgb = WGPUTextureFormat_ETC2RGB8A1UnormSrgb,
-	ETC2RGBA8Unorm = WGPUTextureFormat_ETC2RGBA8Unorm,
-	ETC2RGBA8UnormSrgb = WGPUTextureFormat_ETC2RGBA8UnormSrgb,
-	EACR11Unorm = WGPUTextureFormat_EACR11Unorm,
-	EACR11Snorm = WGPUTextureFormat_EACR11Snorm,
-	EACRG11Unorm = WGPUTextureFormat_EACRG11Unorm,
-	EACRG11Snorm = WGPUTextureFormat_EACRG11Snorm,
-	ASTC4x4Unorm = WGPUTextureFormat_ASTC4x4Unorm,
-	ASTC4x4UnormSrgb = WGPUTextureFormat_ASTC4x4UnormSrgb,
-	ASTC5x4Unorm = WGPUTextureFormat_ASTC5x4Unorm,
-	ASTC5x4UnormSrgb = WGPUTextureFormat_ASTC5x4UnormSrgb,
-	ASTC5x5Unorm = WGPUTextureFormat_ASTC5x5Unorm,
-	ASTC5x5UnormSrgb = WGPUTextureFormat_ASTC5x5UnormSrgb,
-	ASTC6x5Unorm = WGPUTextureFormat_ASTC6x5Unorm,
-	ASTC6x5UnormSrgb = WGPUTextureFormat_ASTC6x5UnormSrgb,
-	ASTC6x6Unorm = WGPUTextureFormat_ASTC6x6Unorm,
-	ASTC6x6UnormSrgb = WGPUTextureFormat_ASTC6x6UnormSrgb,
-	ASTC8x5Unorm = WGPUTextureFormat_ASTC8x5Unorm,
-	ASTC8x5UnormSrgb = WGPUTextureFormat_ASTC8x5UnormSrgb,
-	ASTC8x6Unorm = WGPUTextureFormat_ASTC8x6Unorm,
-	ASTC8x6UnormSrgb = WGPUTextureFormat_ASTC8x6UnormSrgb,
-	ASTC8x8Unorm = WGPUTextureFormat_ASTC8x8Unorm,
-	ASTC8x8UnormSrgb = WGPUTextureFormat_ASTC8x8UnormSrgb,
-	ASTC10x5Unorm = WGPUTextureFormat_ASTC10x5Unorm,
-	ASTC10x5UnormSrgb = WGPUTextureFormat_ASTC10x5UnormSrgb,
-	ASTC10x6Unorm = WGPUTextureFormat_ASTC10x6Unorm,
-	ASTC10x6UnormSrgb = WGPUTextureFormat_ASTC10x6UnormSrgb,
-	ASTC10x8Unorm = WGPUTextureFormat_ASTC10x8Unorm,
-	ASTC10x8UnormSrgb = WGPUTextureFormat_ASTC10x8UnormSrgb,
-	ASTC10x10Unorm = WGPUTextureFormat_ASTC10x10Unorm,
-	ASTC10x10UnormSrgb = WGPUTextureFormat_ASTC10x10UnormSrgb,
-	ASTC12x10Unorm = WGPUTextureFormat_ASTC12x10Unorm,
-	ASTC12x10UnormSrgb = WGPUTextureFormat_ASTC12x10UnormSrgb,
-	ASTC12x12Unorm = WGPUTextureFormat_ASTC12x12Unorm,
-	ASTC12x12UnormSrgb = WGPUTextureFormat_ASTC12x12UnormSrgb,
-	Force32 = WGPUTextureFormat_Force32,
-};
-enum class TextureSampleType: int {
-	Undefined = WGPUTextureSampleType_Undefined,
-	Float = WGPUTextureSampleType_Float,
-	UnfilterableFloat = WGPUTextureSampleType_UnfilterableFloat,
-	Depth = WGPUTextureSampleType_Depth,
-	Sint = WGPUTextureSampleType_Sint,
-	Uint = WGPUTextureSampleType_Uint,
-	Force32 = WGPUTextureSampleType_Force32,
-};
-enum class TextureViewDimension: int {
-	Undefined = WGPUTextureViewDimension_Undefined,
-	_1D = WGPUTextureViewDimension_1D,
-	_2D = WGPUTextureViewDimension_2D,
-	_2DArray = WGPUTextureViewDimension_2DArray,
-	Cube = WGPUTextureViewDimension_Cube,
-	CubeArray = WGPUTextureViewDimension_CubeArray,
-	_3D = WGPUTextureViewDimension_3D,
-	Force32 = WGPUTextureViewDimension_Force32,
-};
-enum class VertexFormat: int {
-	Undefined = WGPUVertexFormat_Undefined,
-	Uint8x2 = WGPUVertexFormat_Uint8x2,
-	Uint8x4 = WGPUVertexFormat_Uint8x4,
-	Sint8x2 = WGPUVertexFormat_Sint8x2,
-	Sint8x4 = WGPUVertexFormat_Sint8x4,
-	Unorm8x2 = WGPUVertexFormat_Unorm8x2,
-	Unorm8x4 = WGPUVertexFormat_Unorm8x4,
-	Snorm8x2 = WGPUVertexFormat_Snorm8x2,
-	Snorm8x4 = WGPUVertexFormat_Snorm8x4,
-	Uint16x2 = WGPUVertexFormat_Uint16x2,
-	Uint16x4 = WGPUVertexFormat_Uint16x4,
-	Sint16x2 = WGPUVertexFormat_Sint16x2,
-	Sint16x4 = WGPUVertexFormat_Sint16x4,
-	Unorm16x2 = WGPUVertexFormat_Unorm16x2,
-	Unorm16x4 = WGPUVertexFormat_Unorm16x4,
-	Snorm16x2 = WGPUVertexFormat_Snorm16x2,
-	Snorm16x4 = WGPUVertexFormat_Snorm16x4,
-	Float16x2 = WGPUVertexFormat_Float16x2,
-	Float16x4 = WGPUVertexFormat_Float16x4,
-	Float32 = WGPUVertexFormat_Float32,
-	Float32x2 = WGPUVertexFormat_Float32x2,
-	Float32x3 = WGPUVertexFormat_Float32x3,
-	Float32x4 = WGPUVertexFormat_Float32x4,
-	Uint32 = WGPUVertexFormat_Uint32,
-	Uint32x2 = WGPUVertexFormat_Uint32x2,
-	Uint32x3 = WGPUVertexFormat_Uint32x3,
-	Uint32x4 = WGPUVertexFormat_Uint32x4,
-	Sint32 = WGPUVertexFormat_Sint32,
-	Sint32x2 = WGPUVertexFormat_Sint32x2,
-	Sint32x3 = WGPUVertexFormat_Sint32x3,
-	Sint32x4 = WGPUVertexFormat_Sint32x4,
-	_2 = WGPUVertexFormat_Unorm10_10_10_2,
-	Force32 = WGPUVertexFormat_Force32,
-};
-enum class VertexStepMode: int {
-	Undefined = WGPUVertexStepMode_Undefined,
-	VertexBufferNotUsed = WGPUVertexStepMode_VertexBufferNotUsed,
-	Vertex = WGPUVertexStepMode_Vertex,
-	Instance = WGPUVertexStepMode_Instance,
-	Force32 = WGPUVertexStepMode_Force32,
-};
-enum class WaitStatus: int {
-	Success = WGPUWaitStatus_Success,
-	TimedOut = WGPUWaitStatus_TimedOut,
-	UnsupportedTimeout = WGPUWaitStatus_UnsupportedTimeout,
-	UnsupportedCount = WGPUWaitStatus_UnsupportedCount,
-	UnsupportedMixedSources = WGPUWaitStatus_UnsupportedMixedSources,
-	Unknown = WGPUWaitStatus_Unknown,
-	Force32 = WGPUWaitStatus_Force32,
-};
-enum class BufferUsage: int {
-	None = WGPUBufferUsage_None,
-	MapRead = WGPUBufferUsage_MapRead,
-	MapWrite = WGPUBufferUsage_MapWrite,
-	CopySrc = WGPUBufferUsage_CopySrc,
-	CopyDst = WGPUBufferUsage_CopyDst,
-	Index = WGPUBufferUsage_Index,
-	Vertex = WGPUBufferUsage_Vertex,
-	Uniform = WGPUBufferUsage_Uniform,
-	Storage = WGPUBufferUsage_Storage,
-	Indirect = WGPUBufferUsage_Indirect,
-	QueryResolve = WGPUBufferUsage_QueryResolve,
-	Force32 = WGPUBufferUsage_Force32,
-};
-enum class ColorWriteMask: int {
-	None = WGPUColorWriteMask_None,
-	Red = WGPUColorWriteMask_Red,
-	Green = WGPUColorWriteMask_Green,
-	Blue = WGPUColorWriteMask_Blue,
-	Alpha = WGPUColorWriteMask_Alpha,
-	All = WGPUColorWriteMask_All,
-	Force32 = WGPUColorWriteMask_Force32,
-};
-enum class MapMode: int {
-	None = WGPUMapMode_None,
-	Read = WGPUMapMode_Read,
-	Write = WGPUMapMode_Write,
-	Force32 = WGPUMapMode_Force32,
-};
-enum class ShaderStage: int {
-	None = WGPUShaderStage_None,
-	Vertex = WGPUShaderStage_Vertex,
-	Fragment = WGPUShaderStage_Fragment,
-	Compute = WGPUShaderStage_Compute,
-	Force32 = WGPUShaderStage_Force32,
-};
-enum class TextureUsage: int {
-	None = WGPUTextureUsage_None,
-	CopySrc = WGPUTextureUsage_CopySrc,
-	CopyDst = WGPUTextureUsage_CopyDst,
-	TextureBinding = WGPUTextureUsage_TextureBinding,
-	StorageBinding = WGPUTextureUsage_StorageBinding,
-	RenderAttachment = WGPUTextureUsage_RenderAttachment,
-	Force32 = WGPUTextureUsage_Force32,
-};
+ENUM(WGSLFeatureName)
+	ENUM_ENTRY(Undefined, WGPUWGSLFeatureName_Undefined)
+	ENUM_ENTRY(ReadonlyAndReadwriteStorageTextures, WGPUWGSLFeatureName_ReadonlyAndReadwriteStorageTextures)
+	ENUM_ENTRY(Packed4x8IntegerDotProduct, WGPUWGSLFeatureName_Packed4x8IntegerDotProduct)
+	ENUM_ENTRY(UnrestrictedPointerParameters, WGPUWGSLFeatureName_UnrestrictedPointerParameters)
+	ENUM_ENTRY(PointerCompositeAccess, WGPUWGSLFeatureName_PointerCompositeAccess)
+	ENUM_ENTRY(Force32, WGPUWGSLFeatureName_Force32)
+END
+ENUM(AdapterType)
+	ENUM_ENTRY(DiscreteGPU, WGPUAdapterType_DiscreteGPU)
+	ENUM_ENTRY(IntegratedGPU, WGPUAdapterType_IntegratedGPU)
+	ENUM_ENTRY(CPU, WGPUAdapterType_CPU)
+	ENUM_ENTRY(Unknown, WGPUAdapterType_Unknown)
+	ENUM_ENTRY(Force32, WGPUAdapterType_Force32)
+END
+ENUM(AddressMode)
+	ENUM_ENTRY(Undefined, WGPUAddressMode_Undefined)
+	ENUM_ENTRY(ClampToEdge, WGPUAddressMode_ClampToEdge)
+	ENUM_ENTRY(Repeat, WGPUAddressMode_Repeat)
+	ENUM_ENTRY(MirrorRepeat, WGPUAddressMode_MirrorRepeat)
+	ENUM_ENTRY(Force32, WGPUAddressMode_Force32)
+END
+ENUM(BackendType)
+	ENUM_ENTRY(Undefined, WGPUBackendType_Undefined)
+	ENUM_ENTRY(Null, WGPUBackendType_Null)
+	ENUM_ENTRY(WebGPU, WGPUBackendType_WebGPU)
+	ENUM_ENTRY(D3D11, WGPUBackendType_D3D11)
+	ENUM_ENTRY(D3D12, WGPUBackendType_D3D12)
+	ENUM_ENTRY(Metal, WGPUBackendType_Metal)
+	ENUM_ENTRY(Vulkan, WGPUBackendType_Vulkan)
+	ENUM_ENTRY(OpenGL, WGPUBackendType_OpenGL)
+	ENUM_ENTRY(OpenGLES, WGPUBackendType_OpenGLES)
+	ENUM_ENTRY(Force32, WGPUBackendType_Force32)
+END
+ENUM(BlendFactor)
+	ENUM_ENTRY(Undefined, WGPUBlendFactor_Undefined)
+	ENUM_ENTRY(Zero, WGPUBlendFactor_Zero)
+	ENUM_ENTRY(One, WGPUBlendFactor_One)
+	ENUM_ENTRY(Src, WGPUBlendFactor_Src)
+	ENUM_ENTRY(OneMinusSrc, WGPUBlendFactor_OneMinusSrc)
+	ENUM_ENTRY(SrcAlpha, WGPUBlendFactor_SrcAlpha)
+	ENUM_ENTRY(OneMinusSrcAlpha, WGPUBlendFactor_OneMinusSrcAlpha)
+	ENUM_ENTRY(Dst, WGPUBlendFactor_Dst)
+	ENUM_ENTRY(OneMinusDst, WGPUBlendFactor_OneMinusDst)
+	ENUM_ENTRY(DstAlpha, WGPUBlendFactor_DstAlpha)
+	ENUM_ENTRY(OneMinusDstAlpha, WGPUBlendFactor_OneMinusDstAlpha)
+	ENUM_ENTRY(SrcAlphaSaturated, WGPUBlendFactor_SrcAlphaSaturated)
+	ENUM_ENTRY(Constant, WGPUBlendFactor_Constant)
+	ENUM_ENTRY(OneMinusConstant, WGPUBlendFactor_OneMinusConstant)
+	ENUM_ENTRY(Force32, WGPUBlendFactor_Force32)
+END
+ENUM(BlendOperation)
+	ENUM_ENTRY(Undefined, WGPUBlendOperation_Undefined)
+	ENUM_ENTRY(Add, WGPUBlendOperation_Add)
+	ENUM_ENTRY(Subtract, WGPUBlendOperation_Subtract)
+	ENUM_ENTRY(ReverseSubtract, WGPUBlendOperation_ReverseSubtract)
+	ENUM_ENTRY(Min, WGPUBlendOperation_Min)
+	ENUM_ENTRY(Max, WGPUBlendOperation_Max)
+	ENUM_ENTRY(Force32, WGPUBlendOperation_Force32)
+END
+ENUM(BufferBindingType)
+	ENUM_ENTRY(Undefined, WGPUBufferBindingType_Undefined)
+	ENUM_ENTRY(Uniform, WGPUBufferBindingType_Uniform)
+	ENUM_ENTRY(Storage, WGPUBufferBindingType_Storage)
+	ENUM_ENTRY(ReadOnlyStorage, WGPUBufferBindingType_ReadOnlyStorage)
+	ENUM_ENTRY(Force32, WGPUBufferBindingType_Force32)
+END
+ENUM(BufferMapAsyncStatus)
+	ENUM_ENTRY(Success, WGPUBufferMapAsyncStatus_Success)
+	ENUM_ENTRY(ValidationError, WGPUBufferMapAsyncStatus_ValidationError)
+	ENUM_ENTRY(Unknown, WGPUBufferMapAsyncStatus_Unknown)
+	ENUM_ENTRY(DeviceLost, WGPUBufferMapAsyncStatus_DeviceLost)
+	ENUM_ENTRY(DestroyedBeforeCallback, WGPUBufferMapAsyncStatus_DestroyedBeforeCallback)
+	ENUM_ENTRY(UnmappedBeforeCallback, WGPUBufferMapAsyncStatus_UnmappedBeforeCallback)
+	ENUM_ENTRY(MappingAlreadyPending, WGPUBufferMapAsyncStatus_MappingAlreadyPending)
+	ENUM_ENTRY(OffsetOutOfRange, WGPUBufferMapAsyncStatus_OffsetOutOfRange)
+	ENUM_ENTRY(SizeOutOfRange, WGPUBufferMapAsyncStatus_SizeOutOfRange)
+	ENUM_ENTRY(Force32, WGPUBufferMapAsyncStatus_Force32)
+END
+ENUM(BufferMapState)
+	ENUM_ENTRY(Unmapped, WGPUBufferMapState_Unmapped)
+	ENUM_ENTRY(Pending, WGPUBufferMapState_Pending)
+	ENUM_ENTRY(Mapped, WGPUBufferMapState_Mapped)
+	ENUM_ENTRY(Force32, WGPUBufferMapState_Force32)
+END
+ENUM(CallbackMode)
+	ENUM_ENTRY(WaitAnyOnly, WGPUCallbackMode_WaitAnyOnly)
+	ENUM_ENTRY(AllowProcessEvents, WGPUCallbackMode_AllowProcessEvents)
+	ENUM_ENTRY(AllowSpontaneous, WGPUCallbackMode_AllowSpontaneous)
+	ENUM_ENTRY(Force32, WGPUCallbackMode_Force32)
+END
+ENUM(CompareFunction)
+	ENUM_ENTRY(Undefined, WGPUCompareFunction_Undefined)
+	ENUM_ENTRY(Never, WGPUCompareFunction_Never)
+	ENUM_ENTRY(Less, WGPUCompareFunction_Less)
+	ENUM_ENTRY(Equal, WGPUCompareFunction_Equal)
+	ENUM_ENTRY(LessEqual, WGPUCompareFunction_LessEqual)
+	ENUM_ENTRY(Greater, WGPUCompareFunction_Greater)
+	ENUM_ENTRY(NotEqual, WGPUCompareFunction_NotEqual)
+	ENUM_ENTRY(GreaterEqual, WGPUCompareFunction_GreaterEqual)
+	ENUM_ENTRY(Always, WGPUCompareFunction_Always)
+	ENUM_ENTRY(Force32, WGPUCompareFunction_Force32)
+END
+ENUM(CompilationInfoRequestStatus)
+	ENUM_ENTRY(Success, WGPUCompilationInfoRequestStatus_Success)
+	ENUM_ENTRY(Error, WGPUCompilationInfoRequestStatus_Error)
+	ENUM_ENTRY(DeviceLost, WGPUCompilationInfoRequestStatus_DeviceLost)
+	ENUM_ENTRY(Unknown, WGPUCompilationInfoRequestStatus_Unknown)
+	ENUM_ENTRY(Force32, WGPUCompilationInfoRequestStatus_Force32)
+END
+ENUM(CompilationMessageType)
+	ENUM_ENTRY(Error, WGPUCompilationMessageType_Error)
+	ENUM_ENTRY(Warning, WGPUCompilationMessageType_Warning)
+	ENUM_ENTRY(Info, WGPUCompilationMessageType_Info)
+	ENUM_ENTRY(Force32, WGPUCompilationMessageType_Force32)
+END
+ENUM(CompositeAlphaMode)
+	ENUM_ENTRY(Auto, WGPUCompositeAlphaMode_Auto)
+	ENUM_ENTRY(Opaque, WGPUCompositeAlphaMode_Opaque)
+	ENUM_ENTRY(Premultiplied, WGPUCompositeAlphaMode_Premultiplied)
+	ENUM_ENTRY(Unpremultiplied, WGPUCompositeAlphaMode_Unpremultiplied)
+	ENUM_ENTRY(Inherit, WGPUCompositeAlphaMode_Inherit)
+	ENUM_ENTRY(Force32, WGPUCompositeAlphaMode_Force32)
+END
+ENUM(CreatePipelineAsyncStatus)
+	ENUM_ENTRY(Success, WGPUCreatePipelineAsyncStatus_Success)
+	ENUM_ENTRY(ValidationError, WGPUCreatePipelineAsyncStatus_ValidationError)
+	ENUM_ENTRY(InternalError, WGPUCreatePipelineAsyncStatus_InternalError)
+	ENUM_ENTRY(DeviceLost, WGPUCreatePipelineAsyncStatus_DeviceLost)
+	ENUM_ENTRY(DeviceDestroyed, WGPUCreatePipelineAsyncStatus_DeviceDestroyed)
+	ENUM_ENTRY(Unknown, WGPUCreatePipelineAsyncStatus_Unknown)
+	ENUM_ENTRY(Force32, WGPUCreatePipelineAsyncStatus_Force32)
+END
+ENUM(CullMode)
+	ENUM_ENTRY(Undefined, WGPUCullMode_Undefined)
+	ENUM_ENTRY(None, WGPUCullMode_None)
+	ENUM_ENTRY(Front, WGPUCullMode_Front)
+	ENUM_ENTRY(Back, WGPUCullMode_Back)
+	ENUM_ENTRY(Force32, WGPUCullMode_Force32)
+END
+ENUM(DeviceLostReason)
+	ENUM_ENTRY(Undefined, WGPUDeviceLostReason_Undefined)
+	ENUM_ENTRY(Unknown, WGPUDeviceLostReason_Unknown)
+	ENUM_ENTRY(Destroyed, WGPUDeviceLostReason_Destroyed)
+	ENUM_ENTRY(Force32, WGPUDeviceLostReason_Force32)
+END
+ENUM(ErrorFilter)
+	ENUM_ENTRY(Validation, WGPUErrorFilter_Validation)
+	ENUM_ENTRY(OutOfMemory, WGPUErrorFilter_OutOfMemory)
+	ENUM_ENTRY(Internal, WGPUErrorFilter_Internal)
+	ENUM_ENTRY(Force32, WGPUErrorFilter_Force32)
+END
+ENUM(ErrorType)
+	ENUM_ENTRY(NoError, WGPUErrorType_NoError)
+	ENUM_ENTRY(Validation, WGPUErrorType_Validation)
+	ENUM_ENTRY(OutOfMemory, WGPUErrorType_OutOfMemory)
+	ENUM_ENTRY(Internal, WGPUErrorType_Internal)
+	ENUM_ENTRY(Unknown, WGPUErrorType_Unknown)
+	ENUM_ENTRY(DeviceLost, WGPUErrorType_DeviceLost)
+	ENUM_ENTRY(Force32, WGPUErrorType_Force32)
+END
+ENUM(FeatureName)
+	ENUM_ENTRY(Undefined, WGPUFeatureName_Undefined)
+	ENUM_ENTRY(DepthClipControl, WGPUFeatureName_DepthClipControl)
+	ENUM_ENTRY(Depth32FloatStencil8, WGPUFeatureName_Depth32FloatStencil8)
+	ENUM_ENTRY(TimestampQuery, WGPUFeatureName_TimestampQuery)
+	ENUM_ENTRY(TextureCompressionBC, WGPUFeatureName_TextureCompressionBC)
+	ENUM_ENTRY(TextureCompressionETC2, WGPUFeatureName_TextureCompressionETC2)
+	ENUM_ENTRY(TextureCompressionASTC, WGPUFeatureName_TextureCompressionASTC)
+	ENUM_ENTRY(IndirectFirstInstance, WGPUFeatureName_IndirectFirstInstance)
+	ENUM_ENTRY(ShaderF16, WGPUFeatureName_ShaderF16)
+	ENUM_ENTRY(RG11B10UfloatRenderable, WGPUFeatureName_RG11B10UfloatRenderable)
+	ENUM_ENTRY(BGRA8UnormStorage, WGPUFeatureName_BGRA8UnormStorage)
+	ENUM_ENTRY(Float32Filterable, WGPUFeatureName_Float32Filterable)
+	ENUM_ENTRY(Force32, WGPUFeatureName_Force32)
+END
+ENUM(FilterMode)
+	ENUM_ENTRY(Undefined, WGPUFilterMode_Undefined)
+	ENUM_ENTRY(Nearest, WGPUFilterMode_Nearest)
+	ENUM_ENTRY(Linear, WGPUFilterMode_Linear)
+	ENUM_ENTRY(Force32, WGPUFilterMode_Force32)
+END
+ENUM(FrontFace)
+	ENUM_ENTRY(Undefined, WGPUFrontFace_Undefined)
+	ENUM_ENTRY(CCW, WGPUFrontFace_CCW)
+	ENUM_ENTRY(CW, WGPUFrontFace_CW)
+	ENUM_ENTRY(Force32, WGPUFrontFace_Force32)
+END
+ENUM(IndexFormat)
+	ENUM_ENTRY(Undefined, WGPUIndexFormat_Undefined)
+	ENUM_ENTRY(Uint16, WGPUIndexFormat_Uint16)
+	ENUM_ENTRY(Uint32, WGPUIndexFormat_Uint32)
+	ENUM_ENTRY(Force32, WGPUIndexFormat_Force32)
+END
+ENUM(LoadOp)
+	ENUM_ENTRY(Undefined, WGPULoadOp_Undefined)
+	ENUM_ENTRY(Clear, WGPULoadOp_Clear)
+	ENUM_ENTRY(Load, WGPULoadOp_Load)
+	ENUM_ENTRY(Force32, WGPULoadOp_Force32)
+END
+ENUM(MipmapFilterMode)
+	ENUM_ENTRY(Undefined, WGPUMipmapFilterMode_Undefined)
+	ENUM_ENTRY(Nearest, WGPUMipmapFilterMode_Nearest)
+	ENUM_ENTRY(Linear, WGPUMipmapFilterMode_Linear)
+	ENUM_ENTRY(Force32, WGPUMipmapFilterMode_Force32)
+END
+ENUM(PowerPreference)
+	ENUM_ENTRY(Undefined, WGPUPowerPreference_Undefined)
+	ENUM_ENTRY(LowPower, WGPUPowerPreference_LowPower)
+	ENUM_ENTRY(HighPerformance, WGPUPowerPreference_HighPerformance)
+	ENUM_ENTRY(Force32, WGPUPowerPreference_Force32)
+END
+ENUM(PresentMode)
+	ENUM_ENTRY(Fifo, WGPUPresentMode_Fifo)
+	ENUM_ENTRY(Immediate, WGPUPresentMode_Immediate)
+	ENUM_ENTRY(Mailbox, WGPUPresentMode_Mailbox)
+	ENUM_ENTRY(Force32, WGPUPresentMode_Force32)
+END
+ENUM(PrimitiveTopology)
+	ENUM_ENTRY(Undefined, WGPUPrimitiveTopology_Undefined)
+	ENUM_ENTRY(PointList, WGPUPrimitiveTopology_PointList)
+	ENUM_ENTRY(LineList, WGPUPrimitiveTopology_LineList)
+	ENUM_ENTRY(LineStrip, WGPUPrimitiveTopology_LineStrip)
+	ENUM_ENTRY(TriangleList, WGPUPrimitiveTopology_TriangleList)
+	ENUM_ENTRY(TriangleStrip, WGPUPrimitiveTopology_TriangleStrip)
+	ENUM_ENTRY(Force32, WGPUPrimitiveTopology_Force32)
+END
+ENUM(QueryType)
+	ENUM_ENTRY(Occlusion, WGPUQueryType_Occlusion)
+	ENUM_ENTRY(Timestamp, WGPUQueryType_Timestamp)
+	ENUM_ENTRY(Force32, WGPUQueryType_Force32)
+END
+ENUM(QueueWorkDoneStatus)
+	ENUM_ENTRY(Success, WGPUQueueWorkDoneStatus_Success)
+	ENUM_ENTRY(Error, WGPUQueueWorkDoneStatus_Error)
+	ENUM_ENTRY(Unknown, WGPUQueueWorkDoneStatus_Unknown)
+	ENUM_ENTRY(DeviceLost, WGPUQueueWorkDoneStatus_DeviceLost)
+	ENUM_ENTRY(Force32, WGPUQueueWorkDoneStatus_Force32)
+END
+ENUM(RequestAdapterStatus)
+	ENUM_ENTRY(Success, WGPURequestAdapterStatus_Success)
+	ENUM_ENTRY(Unavailable, WGPURequestAdapterStatus_Unavailable)
+	ENUM_ENTRY(Error, WGPURequestAdapterStatus_Error)
+	ENUM_ENTRY(Unknown, WGPURequestAdapterStatus_Unknown)
+	ENUM_ENTRY(Force32, WGPURequestAdapterStatus_Force32)
+END
+ENUM(RequestDeviceStatus)
+	ENUM_ENTRY(Success, WGPURequestDeviceStatus_Success)
+	ENUM_ENTRY(Error, WGPURequestDeviceStatus_Error)
+	ENUM_ENTRY(Unknown, WGPURequestDeviceStatus_Unknown)
+	ENUM_ENTRY(Force32, WGPURequestDeviceStatus_Force32)
+END
+ENUM(SType)
+	ENUM_ENTRY(Invalid, WGPUSType_Invalid)
+	ENUM_ENTRY(SurfaceDescriptorFromCanvasHTMLSelector, WGPUSType_SurfaceDescriptorFromCanvasHTMLSelector)
+	ENUM_ENTRY(ShaderModuleSPIRVDescriptor, WGPUSType_ShaderModuleSPIRVDescriptor)
+	ENUM_ENTRY(ShaderModuleWGSLDescriptor, WGPUSType_ShaderModuleWGSLDescriptor)
+	ENUM_ENTRY(PrimitiveDepthClipControl, WGPUSType_PrimitiveDepthClipControl)
+	ENUM_ENTRY(RenderPassDescriptorMaxDrawCount, WGPUSType_RenderPassDescriptorMaxDrawCount)
+	ENUM_ENTRY(TextureBindingViewDimensionDescriptor, WGPUSType_TextureBindingViewDimensionDescriptor)
+	ENUM_ENTRY(Force32, WGPUSType_Force32)
+END
+ENUM(SamplerBindingType)
+	ENUM_ENTRY(Undefined, WGPUSamplerBindingType_Undefined)
+	ENUM_ENTRY(Filtering, WGPUSamplerBindingType_Filtering)
+	ENUM_ENTRY(NonFiltering, WGPUSamplerBindingType_NonFiltering)
+	ENUM_ENTRY(Comparison, WGPUSamplerBindingType_Comparison)
+	ENUM_ENTRY(Force32, WGPUSamplerBindingType_Force32)
+END
+ENUM(StencilOperation)
+	ENUM_ENTRY(Undefined, WGPUStencilOperation_Undefined)
+	ENUM_ENTRY(Keep, WGPUStencilOperation_Keep)
+	ENUM_ENTRY(Zero, WGPUStencilOperation_Zero)
+	ENUM_ENTRY(Replace, WGPUStencilOperation_Replace)
+	ENUM_ENTRY(Invert, WGPUStencilOperation_Invert)
+	ENUM_ENTRY(IncrementClamp, WGPUStencilOperation_IncrementClamp)
+	ENUM_ENTRY(DecrementClamp, WGPUStencilOperation_DecrementClamp)
+	ENUM_ENTRY(IncrementWrap, WGPUStencilOperation_IncrementWrap)
+	ENUM_ENTRY(DecrementWrap, WGPUStencilOperation_DecrementWrap)
+	ENUM_ENTRY(Force32, WGPUStencilOperation_Force32)
+END
+ENUM(StorageTextureAccess)
+	ENUM_ENTRY(Undefined, WGPUStorageTextureAccess_Undefined)
+	ENUM_ENTRY(WriteOnly, WGPUStorageTextureAccess_WriteOnly)
+	ENUM_ENTRY(ReadOnly, WGPUStorageTextureAccess_ReadOnly)
+	ENUM_ENTRY(ReadWrite, WGPUStorageTextureAccess_ReadWrite)
+	ENUM_ENTRY(Force32, WGPUStorageTextureAccess_Force32)
+END
+ENUM(StoreOp)
+	ENUM_ENTRY(Undefined, WGPUStoreOp_Undefined)
+	ENUM_ENTRY(Store, WGPUStoreOp_Store)
+	ENUM_ENTRY(Discard, WGPUStoreOp_Discard)
+	ENUM_ENTRY(Force32, WGPUStoreOp_Force32)
+END
+ENUM(SurfaceGetCurrentTextureStatus)
+	ENUM_ENTRY(Success, WGPUSurfaceGetCurrentTextureStatus_Success)
+	ENUM_ENTRY(Timeout, WGPUSurfaceGetCurrentTextureStatus_Timeout)
+	ENUM_ENTRY(Outdated, WGPUSurfaceGetCurrentTextureStatus_Outdated)
+	ENUM_ENTRY(Lost, WGPUSurfaceGetCurrentTextureStatus_Lost)
+	ENUM_ENTRY(OutOfMemory, WGPUSurfaceGetCurrentTextureStatus_OutOfMemory)
+	ENUM_ENTRY(DeviceLost, WGPUSurfaceGetCurrentTextureStatus_DeviceLost)
+	ENUM_ENTRY(Force32, WGPUSurfaceGetCurrentTextureStatus_Force32)
+END
+ENUM(TextureAspect)
+	ENUM_ENTRY(Undefined, WGPUTextureAspect_Undefined)
+	ENUM_ENTRY(All, WGPUTextureAspect_All)
+	ENUM_ENTRY(StencilOnly, WGPUTextureAspect_StencilOnly)
+	ENUM_ENTRY(DepthOnly, WGPUTextureAspect_DepthOnly)
+	ENUM_ENTRY(Force32, WGPUTextureAspect_Force32)
+END
+ENUM(TextureDimension)
+	ENUM_ENTRY(Undefined, WGPUTextureDimension_Undefined)
+	ENUM_ENTRY(_1D, WGPUTextureDimension_1D)
+	ENUM_ENTRY(_2D, WGPUTextureDimension_2D)
+	ENUM_ENTRY(_3D, WGPUTextureDimension_3D)
+	ENUM_ENTRY(Force32, WGPUTextureDimension_Force32)
+END
+ENUM(TextureFormat)
+	ENUM_ENTRY(Undefined, WGPUTextureFormat_Undefined)
+	ENUM_ENTRY(R8Unorm, WGPUTextureFormat_R8Unorm)
+	ENUM_ENTRY(R8Snorm, WGPUTextureFormat_R8Snorm)
+	ENUM_ENTRY(R8Uint, WGPUTextureFormat_R8Uint)
+	ENUM_ENTRY(R8Sint, WGPUTextureFormat_R8Sint)
+	ENUM_ENTRY(R16Uint, WGPUTextureFormat_R16Uint)
+	ENUM_ENTRY(R16Sint, WGPUTextureFormat_R16Sint)
+	ENUM_ENTRY(R16Float, WGPUTextureFormat_R16Float)
+	ENUM_ENTRY(RG8Unorm, WGPUTextureFormat_RG8Unorm)
+	ENUM_ENTRY(RG8Snorm, WGPUTextureFormat_RG8Snorm)
+	ENUM_ENTRY(RG8Uint, WGPUTextureFormat_RG8Uint)
+	ENUM_ENTRY(RG8Sint, WGPUTextureFormat_RG8Sint)
+	ENUM_ENTRY(R32Float, WGPUTextureFormat_R32Float)
+	ENUM_ENTRY(R32Uint, WGPUTextureFormat_R32Uint)
+	ENUM_ENTRY(R32Sint, WGPUTextureFormat_R32Sint)
+	ENUM_ENTRY(RG16Uint, WGPUTextureFormat_RG16Uint)
+	ENUM_ENTRY(RG16Sint, WGPUTextureFormat_RG16Sint)
+	ENUM_ENTRY(RG16Float, WGPUTextureFormat_RG16Float)
+	ENUM_ENTRY(RGBA8Unorm, WGPUTextureFormat_RGBA8Unorm)
+	ENUM_ENTRY(RGBA8UnormSrgb, WGPUTextureFormat_RGBA8UnormSrgb)
+	ENUM_ENTRY(RGBA8Snorm, WGPUTextureFormat_RGBA8Snorm)
+	ENUM_ENTRY(RGBA8Uint, WGPUTextureFormat_RGBA8Uint)
+	ENUM_ENTRY(RGBA8Sint, WGPUTextureFormat_RGBA8Sint)
+	ENUM_ENTRY(BGRA8Unorm, WGPUTextureFormat_BGRA8Unorm)
+	ENUM_ENTRY(BGRA8UnormSrgb, WGPUTextureFormat_BGRA8UnormSrgb)
+	ENUM_ENTRY(RGB10A2Uint, WGPUTextureFormat_RGB10A2Uint)
+	ENUM_ENTRY(RGB10A2Unorm, WGPUTextureFormat_RGB10A2Unorm)
+	ENUM_ENTRY(RG11B10Ufloat, WGPUTextureFormat_RG11B10Ufloat)
+	ENUM_ENTRY(RGB9E5Ufloat, WGPUTextureFormat_RGB9E5Ufloat)
+	ENUM_ENTRY(RG32Float, WGPUTextureFormat_RG32Float)
+	ENUM_ENTRY(RG32Uint, WGPUTextureFormat_RG32Uint)
+	ENUM_ENTRY(RG32Sint, WGPUTextureFormat_RG32Sint)
+	ENUM_ENTRY(RGBA16Uint, WGPUTextureFormat_RGBA16Uint)
+	ENUM_ENTRY(RGBA16Sint, WGPUTextureFormat_RGBA16Sint)
+	ENUM_ENTRY(RGBA16Float, WGPUTextureFormat_RGBA16Float)
+	ENUM_ENTRY(RGBA32Float, WGPUTextureFormat_RGBA32Float)
+	ENUM_ENTRY(RGBA32Uint, WGPUTextureFormat_RGBA32Uint)
+	ENUM_ENTRY(RGBA32Sint, WGPUTextureFormat_RGBA32Sint)
+	ENUM_ENTRY(Stencil8, WGPUTextureFormat_Stencil8)
+	ENUM_ENTRY(Depth16Unorm, WGPUTextureFormat_Depth16Unorm)
+	ENUM_ENTRY(Depth24Plus, WGPUTextureFormat_Depth24Plus)
+	ENUM_ENTRY(Depth24PlusStencil8, WGPUTextureFormat_Depth24PlusStencil8)
+	ENUM_ENTRY(Depth32Float, WGPUTextureFormat_Depth32Float)
+	ENUM_ENTRY(Depth32FloatStencil8, WGPUTextureFormat_Depth32FloatStencil8)
+	ENUM_ENTRY(BC1RGBAUnorm, WGPUTextureFormat_BC1RGBAUnorm)
+	ENUM_ENTRY(BC1RGBAUnormSrgb, WGPUTextureFormat_BC1RGBAUnormSrgb)
+	ENUM_ENTRY(BC2RGBAUnorm, WGPUTextureFormat_BC2RGBAUnorm)
+	ENUM_ENTRY(BC2RGBAUnormSrgb, WGPUTextureFormat_BC2RGBAUnormSrgb)
+	ENUM_ENTRY(BC3RGBAUnorm, WGPUTextureFormat_BC3RGBAUnorm)
+	ENUM_ENTRY(BC3RGBAUnormSrgb, WGPUTextureFormat_BC3RGBAUnormSrgb)
+	ENUM_ENTRY(BC4RUnorm, WGPUTextureFormat_BC4RUnorm)
+	ENUM_ENTRY(BC4RSnorm, WGPUTextureFormat_BC4RSnorm)
+	ENUM_ENTRY(BC5RGUnorm, WGPUTextureFormat_BC5RGUnorm)
+	ENUM_ENTRY(BC5RGSnorm, WGPUTextureFormat_BC5RGSnorm)
+	ENUM_ENTRY(BC6HRGBUfloat, WGPUTextureFormat_BC6HRGBUfloat)
+	ENUM_ENTRY(BC6HRGBFloat, WGPUTextureFormat_BC6HRGBFloat)
+	ENUM_ENTRY(BC7RGBAUnorm, WGPUTextureFormat_BC7RGBAUnorm)
+	ENUM_ENTRY(BC7RGBAUnormSrgb, WGPUTextureFormat_BC7RGBAUnormSrgb)
+	ENUM_ENTRY(ETC2RGB8Unorm, WGPUTextureFormat_ETC2RGB8Unorm)
+	ENUM_ENTRY(ETC2RGB8UnormSrgb, WGPUTextureFormat_ETC2RGB8UnormSrgb)
+	ENUM_ENTRY(ETC2RGB8A1Unorm, WGPUTextureFormat_ETC2RGB8A1Unorm)
+	ENUM_ENTRY(ETC2RGB8A1UnormSrgb, WGPUTextureFormat_ETC2RGB8A1UnormSrgb)
+	ENUM_ENTRY(ETC2RGBA8Unorm, WGPUTextureFormat_ETC2RGBA8Unorm)
+	ENUM_ENTRY(ETC2RGBA8UnormSrgb, WGPUTextureFormat_ETC2RGBA8UnormSrgb)
+	ENUM_ENTRY(EACR11Unorm, WGPUTextureFormat_EACR11Unorm)
+	ENUM_ENTRY(EACR11Snorm, WGPUTextureFormat_EACR11Snorm)
+	ENUM_ENTRY(EACRG11Unorm, WGPUTextureFormat_EACRG11Unorm)
+	ENUM_ENTRY(EACRG11Snorm, WGPUTextureFormat_EACRG11Snorm)
+	ENUM_ENTRY(ASTC4x4Unorm, WGPUTextureFormat_ASTC4x4Unorm)
+	ENUM_ENTRY(ASTC4x4UnormSrgb, WGPUTextureFormat_ASTC4x4UnormSrgb)
+	ENUM_ENTRY(ASTC5x4Unorm, WGPUTextureFormat_ASTC5x4Unorm)
+	ENUM_ENTRY(ASTC5x4UnormSrgb, WGPUTextureFormat_ASTC5x4UnormSrgb)
+	ENUM_ENTRY(ASTC5x5Unorm, WGPUTextureFormat_ASTC5x5Unorm)
+	ENUM_ENTRY(ASTC5x5UnormSrgb, WGPUTextureFormat_ASTC5x5UnormSrgb)
+	ENUM_ENTRY(ASTC6x5Unorm, WGPUTextureFormat_ASTC6x5Unorm)
+	ENUM_ENTRY(ASTC6x5UnormSrgb, WGPUTextureFormat_ASTC6x5UnormSrgb)
+	ENUM_ENTRY(ASTC6x6Unorm, WGPUTextureFormat_ASTC6x6Unorm)
+	ENUM_ENTRY(ASTC6x6UnormSrgb, WGPUTextureFormat_ASTC6x6UnormSrgb)
+	ENUM_ENTRY(ASTC8x5Unorm, WGPUTextureFormat_ASTC8x5Unorm)
+	ENUM_ENTRY(ASTC8x5UnormSrgb, WGPUTextureFormat_ASTC8x5UnormSrgb)
+	ENUM_ENTRY(ASTC8x6Unorm, WGPUTextureFormat_ASTC8x6Unorm)
+	ENUM_ENTRY(ASTC8x6UnormSrgb, WGPUTextureFormat_ASTC8x6UnormSrgb)
+	ENUM_ENTRY(ASTC8x8Unorm, WGPUTextureFormat_ASTC8x8Unorm)
+	ENUM_ENTRY(ASTC8x8UnormSrgb, WGPUTextureFormat_ASTC8x8UnormSrgb)
+	ENUM_ENTRY(ASTC10x5Unorm, WGPUTextureFormat_ASTC10x5Unorm)
+	ENUM_ENTRY(ASTC10x5UnormSrgb, WGPUTextureFormat_ASTC10x5UnormSrgb)
+	ENUM_ENTRY(ASTC10x6Unorm, WGPUTextureFormat_ASTC10x6Unorm)
+	ENUM_ENTRY(ASTC10x6UnormSrgb, WGPUTextureFormat_ASTC10x6UnormSrgb)
+	ENUM_ENTRY(ASTC10x8Unorm, WGPUTextureFormat_ASTC10x8Unorm)
+	ENUM_ENTRY(ASTC10x8UnormSrgb, WGPUTextureFormat_ASTC10x8UnormSrgb)
+	ENUM_ENTRY(ASTC10x10Unorm, WGPUTextureFormat_ASTC10x10Unorm)
+	ENUM_ENTRY(ASTC10x10UnormSrgb, WGPUTextureFormat_ASTC10x10UnormSrgb)
+	ENUM_ENTRY(ASTC12x10Unorm, WGPUTextureFormat_ASTC12x10Unorm)
+	ENUM_ENTRY(ASTC12x10UnormSrgb, WGPUTextureFormat_ASTC12x10UnormSrgb)
+	ENUM_ENTRY(ASTC12x12Unorm, WGPUTextureFormat_ASTC12x12Unorm)
+	ENUM_ENTRY(ASTC12x12UnormSrgb, WGPUTextureFormat_ASTC12x12UnormSrgb)
+	ENUM_ENTRY(Force32, WGPUTextureFormat_Force32)
+END
+ENUM(TextureSampleType)
+	ENUM_ENTRY(Undefined, WGPUTextureSampleType_Undefined)
+	ENUM_ENTRY(Float, WGPUTextureSampleType_Float)
+	ENUM_ENTRY(UnfilterableFloat, WGPUTextureSampleType_UnfilterableFloat)
+	ENUM_ENTRY(Depth, WGPUTextureSampleType_Depth)
+	ENUM_ENTRY(Sint, WGPUTextureSampleType_Sint)
+	ENUM_ENTRY(Uint, WGPUTextureSampleType_Uint)
+	ENUM_ENTRY(Force32, WGPUTextureSampleType_Force32)
+END
+ENUM(TextureViewDimension)
+	ENUM_ENTRY(Undefined, WGPUTextureViewDimension_Undefined)
+	ENUM_ENTRY(_1D, WGPUTextureViewDimension_1D)
+	ENUM_ENTRY(_2D, WGPUTextureViewDimension_2D)
+	ENUM_ENTRY(_2DArray, WGPUTextureViewDimension_2DArray)
+	ENUM_ENTRY(Cube, WGPUTextureViewDimension_Cube)
+	ENUM_ENTRY(CubeArray, WGPUTextureViewDimension_CubeArray)
+	ENUM_ENTRY(_3D, WGPUTextureViewDimension_3D)
+	ENUM_ENTRY(Force32, WGPUTextureViewDimension_Force32)
+END
+ENUM(VertexFormat)
+	ENUM_ENTRY(Undefined, WGPUVertexFormat_Undefined)
+	ENUM_ENTRY(Uint8x2, WGPUVertexFormat_Uint8x2)
+	ENUM_ENTRY(Uint8x4, WGPUVertexFormat_Uint8x4)
+	ENUM_ENTRY(Sint8x2, WGPUVertexFormat_Sint8x2)
+	ENUM_ENTRY(Sint8x4, WGPUVertexFormat_Sint8x4)
+	ENUM_ENTRY(Unorm8x2, WGPUVertexFormat_Unorm8x2)
+	ENUM_ENTRY(Unorm8x4, WGPUVertexFormat_Unorm8x4)
+	ENUM_ENTRY(Snorm8x2, WGPUVertexFormat_Snorm8x2)
+	ENUM_ENTRY(Snorm8x4, WGPUVertexFormat_Snorm8x4)
+	ENUM_ENTRY(Uint16x2, WGPUVertexFormat_Uint16x2)
+	ENUM_ENTRY(Uint16x4, WGPUVertexFormat_Uint16x4)
+	ENUM_ENTRY(Sint16x2, WGPUVertexFormat_Sint16x2)
+	ENUM_ENTRY(Sint16x4, WGPUVertexFormat_Sint16x4)
+	ENUM_ENTRY(Unorm16x2, WGPUVertexFormat_Unorm16x2)
+	ENUM_ENTRY(Unorm16x4, WGPUVertexFormat_Unorm16x4)
+	ENUM_ENTRY(Snorm16x2, WGPUVertexFormat_Snorm16x2)
+	ENUM_ENTRY(Snorm16x4, WGPUVertexFormat_Snorm16x4)
+	ENUM_ENTRY(Float16x2, WGPUVertexFormat_Float16x2)
+	ENUM_ENTRY(Float16x4, WGPUVertexFormat_Float16x4)
+	ENUM_ENTRY(Float32, WGPUVertexFormat_Float32)
+	ENUM_ENTRY(Float32x2, WGPUVertexFormat_Float32x2)
+	ENUM_ENTRY(Float32x3, WGPUVertexFormat_Float32x3)
+	ENUM_ENTRY(Float32x4, WGPUVertexFormat_Float32x4)
+	ENUM_ENTRY(Uint32, WGPUVertexFormat_Uint32)
+	ENUM_ENTRY(Uint32x2, WGPUVertexFormat_Uint32x2)
+	ENUM_ENTRY(Uint32x3, WGPUVertexFormat_Uint32x3)
+	ENUM_ENTRY(Uint32x4, WGPUVertexFormat_Uint32x4)
+	ENUM_ENTRY(Sint32, WGPUVertexFormat_Sint32)
+	ENUM_ENTRY(Sint32x2, WGPUVertexFormat_Sint32x2)
+	ENUM_ENTRY(Sint32x3, WGPUVertexFormat_Sint32x3)
+	ENUM_ENTRY(Sint32x4, WGPUVertexFormat_Sint32x4)
+	ENUM_ENTRY(_2, WGPUVertexFormat_Unorm10_10_10_2)
+	ENUM_ENTRY(Force32, WGPUVertexFormat_Force32)
+END
+ENUM(VertexStepMode)
+	ENUM_ENTRY(Undefined, WGPUVertexStepMode_Undefined)
+	ENUM_ENTRY(VertexBufferNotUsed, WGPUVertexStepMode_VertexBufferNotUsed)
+	ENUM_ENTRY(Vertex, WGPUVertexStepMode_Vertex)
+	ENUM_ENTRY(Instance, WGPUVertexStepMode_Instance)
+	ENUM_ENTRY(Force32, WGPUVertexStepMode_Force32)
+END
+ENUM(WaitStatus)
+	ENUM_ENTRY(Success, WGPUWaitStatus_Success)
+	ENUM_ENTRY(TimedOut, WGPUWaitStatus_TimedOut)
+	ENUM_ENTRY(UnsupportedTimeout, WGPUWaitStatus_UnsupportedTimeout)
+	ENUM_ENTRY(UnsupportedCount, WGPUWaitStatus_UnsupportedCount)
+	ENUM_ENTRY(UnsupportedMixedSources, WGPUWaitStatus_UnsupportedMixedSources)
+	ENUM_ENTRY(Unknown, WGPUWaitStatus_Unknown)
+	ENUM_ENTRY(Force32, WGPUWaitStatus_Force32)
+END
+ENUM(BufferUsage)
+	ENUM_ENTRY(None, WGPUBufferUsage_None)
+	ENUM_ENTRY(MapRead, WGPUBufferUsage_MapRead)
+	ENUM_ENTRY(MapWrite, WGPUBufferUsage_MapWrite)
+	ENUM_ENTRY(CopySrc, WGPUBufferUsage_CopySrc)
+	ENUM_ENTRY(CopyDst, WGPUBufferUsage_CopyDst)
+	ENUM_ENTRY(Index, WGPUBufferUsage_Index)
+	ENUM_ENTRY(Vertex, WGPUBufferUsage_Vertex)
+	ENUM_ENTRY(Uniform, WGPUBufferUsage_Uniform)
+	ENUM_ENTRY(Storage, WGPUBufferUsage_Storage)
+	ENUM_ENTRY(Indirect, WGPUBufferUsage_Indirect)
+	ENUM_ENTRY(QueryResolve, WGPUBufferUsage_QueryResolve)
+	ENUM_ENTRY(Force32, WGPUBufferUsage_Force32)
+END
+ENUM(ColorWriteMask)
+	ENUM_ENTRY(None, WGPUColorWriteMask_None)
+	ENUM_ENTRY(Red, WGPUColorWriteMask_Red)
+	ENUM_ENTRY(Green, WGPUColorWriteMask_Green)
+	ENUM_ENTRY(Blue, WGPUColorWriteMask_Blue)
+	ENUM_ENTRY(Alpha, WGPUColorWriteMask_Alpha)
+	ENUM_ENTRY(All, WGPUColorWriteMask_All)
+	ENUM_ENTRY(Force32, WGPUColorWriteMask_Force32)
+END
+ENUM(MapMode)
+	ENUM_ENTRY(None, WGPUMapMode_None)
+	ENUM_ENTRY(Read, WGPUMapMode_Read)
+	ENUM_ENTRY(Write, WGPUMapMode_Write)
+	ENUM_ENTRY(Force32, WGPUMapMode_Force32)
+END
+ENUM(ShaderStage)
+	ENUM_ENTRY(None, WGPUShaderStage_None)
+	ENUM_ENTRY(Vertex, WGPUShaderStage_Vertex)
+	ENUM_ENTRY(Fragment, WGPUShaderStage_Fragment)
+	ENUM_ENTRY(Compute, WGPUShaderStage_Compute)
+	ENUM_ENTRY(Force32, WGPUShaderStage_Force32)
+END
+ENUM(TextureUsage)
+	ENUM_ENTRY(None, WGPUTextureUsage_None)
+	ENUM_ENTRY(CopySrc, WGPUTextureUsage_CopySrc)
+	ENUM_ENTRY(CopyDst, WGPUTextureUsage_CopyDst)
+	ENUM_ENTRY(TextureBinding, WGPUTextureUsage_TextureBinding)
+	ENUM_ENTRY(StorageBinding, WGPUTextureUsage_StorageBinding)
+	ENUM_ENTRY(RenderAttachment, WGPUTextureUsage_RenderAttachment)
+	ENUM_ENTRY(Force32, WGPUTextureUsage_Force32)
+END
 
 // Structs
 STRUCT(ChainedStruct)
