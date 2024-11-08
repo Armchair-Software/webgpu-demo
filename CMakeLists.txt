@@ -211,14 +211,11 @@ target_link_options(client PRIVATE
   -sWASM_BIGINT
   -sELIMINATE_DUPLICATE_FUNCTIONS=1
   -sUSE_WEBGPU
-  # May be required: -sASYNCIFY
   -sUSE_GLFW=3
   -sFETCH=1
   -sUSE_FREETYPE=1
   ${exception_link_options}
   -sEXPORTED_RUNTIME_METHODS=[ccall]
-  # enable exit handling code
-  -sEXIT_RUNTIME=1
   -sLLD_REPORT_UNDEFINED
   # don't emit code for node.js etc
   -sENVIRONMENT=web
