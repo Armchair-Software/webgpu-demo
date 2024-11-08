@@ -131,7 +131,7 @@ void game_manager::run() {
             adapter_features.emplace(adapter_features_arr[i]);
           }
         }
-        for(auto const &feature : adapter_features) {
+        for(auto const feature : adapter_features) {
           logger << "DEBUG: WebGPU adapter features: " << magic_enum::enum_name(feature);
         }
         {
@@ -172,8 +172,62 @@ void game_manager::run() {
           logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupsPerDimension: " << adapter_limits.limits.maxComputeWorkgroupsPerDimension;
         }
 
-        wgpu::DeviceDescriptor device_descriptor{};
-        // TODO: specify requiredFeatures, requiredLimits, deviceLostCallback etc
+        std::set<wgpu::FeatureName> required_features{
+          //wgpu::FeatureName::DepthClipControl,
+          wgpu::FeatureName::Depth32FloatStencil8,
+          #ifndef NDEBUG
+            wgpu::FeatureName::TimestampQuery,
+          #endif // NDEBUG
+          wgpu::FeatureName::TextureCompressionBC,
+          //wgpu::FeatureName::TextureCompressionETC2,
+          //wgpu::FeatureName::TextureCompressionASTC,
+          wgpu::FeatureName::IndirectFirstInstance,
+          //wgpu::FeatureName::ShaderF16,
+          //wgpu::FeatureName::RG11B10UfloatRenderable,
+          //wgpu::FeatureName::BGRA8UnormStorage,
+          //wgpu::FeatureName::Float32Filterable,
+        };
+        std::set<wgpu::FeatureName> desired_features{
+          //wgpu::FeatureName::DepthClipControl,
+          //wgpu::FeatureName::Depth32FloatStencil8,
+          #ifndef NDEBUG
+            //wgpu::FeatureName::TimestampQuery,
+          #endif // NDEBUG
+          //wgpu::FeatureName::TextureCompressionBC,
+          //wgpu::FeatureName::TextureCompressionETC2,
+          //wgpu::FeatureName::TextureCompressionASTC,
+          //wgpu::FeatureName::IndirectFirstInstance,
+          wgpu::FeatureName::ShaderF16,
+          //wgpu::FeatureName::RG11B10UfloatRenderable,
+          //wgpu::FeatureName::BGRA8UnormStorage,
+          wgpu::FeatureName::Float32Filterable,
+        };
+
+        std::vector<wgpu::FeatureName> required_features_arr;
+        for(auto const feature : required_features) {
+          if(!adapter_features.contains(feature)) {
+            logger << "WebGPU: Required adapter feature " << magic_enum::enum_name(feature) << " unavailable, cannot continue";
+            throw std::runtime_error{"WebGPU: Required adapter feature " + std::string{magic_enum::enum_name(feature)} + " not available"};
+          }
+          logger << "WebGPU: Required adapter feature: " << magic_enum::enum_name(feature) << " requested";
+          required_features_arr.emplace_back(feature);
+        }
+        for(auto const feature : desired_features) {
+          if(!adapter_features.contains(feature)) {
+            logger << "WebGPU: Desired adapter feature " << magic_enum::enum_name(feature) << " unavailable, continuing without it";
+            continue;
+          }
+          logger << "WebGPU: Desired adapter feature " << magic_enum::enum_name(feature) << " requested";
+          required_features_arr.emplace_back(feature);
+        }
+
+        wgpu::DeviceDescriptor device_descriptor{
+          .requiredFeatureCount = required_features_arr.size(),
+          .requiredFeatures = required_features_arr.data(),
+          .defaultQueue = {},
+          // TODO: defaultQueue label
+          // TODO: specify requiredLimits, deviceLostCallback etc
+        };
 
         adapter.RequestDevice(
           &device_descriptor,
@@ -197,7 +251,7 @@ void game_manager::run() {
               device_features.emplace(device_features_arr[i]);
             }
           }
-          for(auto const &feature : device_features) {
+          for(auto const feature : device_features) {
             logger << "DEBUG: WebGPU device features: " << magic_enum::enum_name(feature);
           }
           {
