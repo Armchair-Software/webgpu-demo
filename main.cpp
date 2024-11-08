@@ -88,7 +88,25 @@ void game_manager::run() {
 
         wgpu::Adapter adapter{wgpu::Adapter::Acquire(adapter_ptr)};
 
+        wgpu::AdapterInfo adapter_info;
+        adapter.GetInfo(&adapter_info);
+        #ifndef NDEBUG
+          logger << "DEBUG: WebGPU adapter info: vendor: " << adapter_info.vendor;
+          logger << "DEBUG: WebGPU adapter info: architecture: " << adapter_info.architecture;
+          logger << "DEBUG: WebGPU adapter info: device: " << adapter_info.device;
+          logger << "DEBUG: WebGPU adapter info: description: " << adapter_info.description;
+          logger << "DEBUG: WebGPU adapter info: vendorID:deviceID: " << adapter_info.vendorID << ":" << adapter_info.deviceID;
+          logger << "DEBUG: WebGPU adapter info: backendType: " << magic_enum::enum_name(adapter_info.backendType);
+          logger << "DEBUG: WebGPU adapter info: adapterType: " << magic_enum::enum_name(adapter_info.adapterType);
+        #endif // NDEBUG
+        logger << "WebGPU adapter info: " << adapter_info.description << " (" << magic_enum::enum_name(adapter_info.backendType) << ", " << adapter_info.vendor << ", " << adapter_info.architecture << ")";
+
         // TODO: inspect the adapter
+        //size_t EnumerateFeatures(FeatureName * features) const;
+        //Bool GetLimits(SupportedLimits * limits) const;
+        //void GetProperties(AdapterProperties * properties) const;
+
+
 
 
         wgpu::DeviceDescriptor device_descriptor{};
@@ -116,7 +134,8 @@ void game_manager::run() {
   }
 
   // TODO: can we just do this?
-  //wgpu::Device device = wgpu::Device::Acquire(emscripten_webgpu_get_device());
+  //#include <emscripten/html5_webgpu.h>
+  //wgpu::Device device{wgpu::Device::Acquire(emscripten_webgpu_get_device())};
 
 
   logger << "Entering main loop";
