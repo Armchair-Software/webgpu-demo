@@ -23,6 +23,27 @@ void boost::throw_exception(std::exception const & e) {
 }
 #endif // BOOST_NO_EXCEPTIONS
 
+const char* shader_source = R"(
+@vertex
+fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4f {
+    var p = vec2f(0.0, 0.0);
+    if (in_vertex_index == 0u) {
+        p = vec2f(-0.5, -0.5);
+    } else if (in_vertex_index == 1u) {
+        p = vec2f(0.5, -0.5);
+    } else {
+        p = vec2f(0.0, 0.5);
+    }
+    return vec4f(p, 0.0, 1.0);
+}
+
+@fragment
+fn fs_main() -> @location(0) vec4f {
+    return vec4f(1.0, 1.0, 0.0, 1.0);
+}
+)";
+
+
 class game_manager {
   logstorm::manager logger{logstorm::manager::build_with_sink<logstorm::sink::console>()}; // logging system
 
@@ -31,6 +52,7 @@ class game_manager {
     wgpu::Adapter adapter;                                                      // WebGPU adapter once it has been acquired
     wgpu::Device device;                                                        // WebGPU device once it has been acquired
     wgpu::Queue queue;                                                          // the queue for this device, once it has been acquired
+    wgpu::RenderPipeline pipeline;                                              // the render pipeline currently in use
 
     wgpu::TextureFormat surface_preferred_format{wgpu::TextureFormat::Undefined}; // preferred texture format for this surface
   } webgpu;
@@ -477,6 +499,65 @@ void game_manager::loop_wait_init() {
   logger << "WebGPU acquiring queue";
   webgpu.queue = webgpu.device.GetQueue();
 
+  logger << "WebGPU assembling shaders";
+  {
+    wgpu::ShaderModuleWGSLDescriptor shader_module_wgsl_decriptor;
+    shader_module_wgsl_decriptor.sType = wgpu::SType::ShaderModuleWGSLDescriptor;
+    // TODO: the above shouldn't be needed
+    shader_module_wgsl_decriptor.code = shader_source;
+    wgpu::ShaderModuleDescriptor shader_module_descriptor{
+      .nextInChain = &shader_module_wgsl_decriptor,
+      .label = "Shader module 1",
+    };
+    wgpu::ShaderModule shader_module{webgpu.device.CreateShaderModule(&shader_module_descriptor)};
+
+    logger << "WebGPU configuring pipeline";
+    wgpu::BlendState blend_state{
+      .color{
+        .operation = wgpu::BlendOperation::Add,                                 // initial values from https://eliemichel.github.io/LearnWebGPU/basic-3d-rendering/hello-triangle.html
+        .srcFactor = wgpu::BlendFactor::SrcAlpha,
+        .dstFactor = wgpu::BlendFactor::OneMinusSrcAlpha,
+      },
+      .alpha{
+        .operation = wgpu::BlendOperation::Add,                                 // these differ from defaults
+        .srcFactor = wgpu::BlendFactor::Zero,
+        .dstFactor = wgpu::BlendFactor::One,
+        // TODO: compare with defaults
+      },
+    };
+    wgpu::ColorTargetState colour_target_state{
+      .format = webgpu.surface_preferred_format,
+      .blend = &blend_state,
+    };
+    wgpu::FragmentState fragment_state{
+      .module = shader_module,
+      .entryPoint = "fs_main",
+      .constantCount = 0,
+      .constants = nullptr,
+      .targetCount = 1,
+      .targets = &colour_target_state,
+    };
+    wgpu::RenderPipelineDescriptor render_pipeline_descriptor{
+      .label = "Render pipeline 1",
+      .vertex{
+        .module = shader_module,
+        .entryPoint = "vs_main",
+        .constantCount = 0,
+        .constants = nullptr,
+        .bufferCount = 0,
+        .buffers = nullptr,
+      },
+      .primitive{
+        // TODO: cullmode front etc
+      },
+      // TODO:
+      //optional .depthStencil =
+      .multisample{},
+      .fragment = &fragment_state,
+    };
+    webgpu.pipeline = webgpu.device.CreateRenderPipeline(&render_pipeline_descriptor);
+  }
+
   logger << "Entering main loop";
   emscripten_cancel_main_loop();
   emscripten_set_main_loop_arg([](void *data){
@@ -535,6 +616,10 @@ void game_manager::loop_main() {
         .colorAttachments = &render_pass_colour_attachment,
       };
       wgpu::RenderPassEncoder render_pass_encoder{command_encoder.BeginRenderPass(&render_pass_descriptor)};
+
+      render_pass_encoder.SetPipeline(webgpu.pipeline);                         // select which render pipeline to use
+
+      render_pass_encoder.Draw(3, 1, 0, 0);                                     // vertexCount, instanceCount, firstVertex, firstInstance
 
       // TODO: add timestamp query: https://eliemichel.github.io/LearnWebGPU/advanced-techniques/benchmarking/time.html
       render_pass_encoder.End();
