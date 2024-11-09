@@ -324,6 +324,15 @@ void game_manager::run() {
               logger << "DEBUG: WebGPU device limits maxComputeWorkgroupsPerDimension: " << adapter_limits.limits.maxComputeWorkgroupsPerDimension;
             }
 
+            device.SetUncapturedErrorCallback(
+              [](WGPUErrorType type, char const *message, void *data){
+                /// Uncaptured error callback
+                auto &game{*static_cast<game_manager*>(data)};
+                auto &logger{game.logger};
+                logger << "ERROR: WebGPU uncaptured error " << enum_wgpu_name<wgpu::ErrorType>(type) << ": " << message;
+              },
+              &game
+            );
 
             // TODO: device ready
           },
