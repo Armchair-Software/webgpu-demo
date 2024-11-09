@@ -25,8 +25,8 @@ class game_manager {
   logstorm::manager logger{logstorm::manager::build_with_sink<logstorm::sink::console>()}; // logging system
 
   struct {
-    //WGPUAdapterImpl *adapter{nullptr};
-    //wgpu::Adapter adapter;
+    bool ready{false};
+    wgpu::Device device;
   } webgpu;
 
   //render::window window{logger, "Loading: Armchair WebGPU Demo"};
@@ -37,6 +37,7 @@ public:
 
 private:
   static void loop_main_dispatcher(void *data);
+  void loop_wait_init();
   void loop_main();
 };
 
@@ -271,7 +272,8 @@ void game_manager::run() {
               logger << "ERROR: WebGPU device request failure, status " << enum_wgpu_name<wgpu::RequestDeviceStatus>(status_c);
               throw std::runtime_error{"WebGPU: Could not get adapter"};
             }
-            wgpu::Device device{wgpu::Device::Acquire(device_ptr)};
+            auto &device{game.webgpu.device};
+            device = wgpu::Device::Acquire(device_ptr);
 
             std::set<wgpu::FeatureName> device_features;
             {
@@ -333,8 +335,7 @@ void game_manager::run() {
               },
               &game
             );
-
-            // TODO: device ready
+            game.webgpu.ready = true;
           },
           data
         );
@@ -348,16 +349,35 @@ void game_manager::run() {
   //wgpu::Device device{wgpu::Device::Acquire(emscripten_webgpu_get_device())};
 
 
-  logger << "Entering main loop";
-
+  logger << "Entering WebGPU init loop";
   emscripten_set_main_loop_arg([](void *data){
-    /// Main pseudo-loop dispatcher
+    /// Dispatch the loop waiting for WebGPU to become ready
     auto &game{*static_cast<game_manager*>(data)};
-    game.loop_main();
+    game.loop_wait_init();
   }, this, 0, true);                                                            // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
+  // TODO: unreachable
+}
+
+void game_manager::loop_wait_init() {
+  /// Main pseudo-loop waiting for initialisation to complete
+  logger << "Waiting for WebGPU to become available...";
+
+  if(webgpu.ready) {
+    logger << "Entering main loop";
+    emscripten_cancel_main_loop();
+    emscripten_set_main_loop_arg([](void *data){
+      /// Main pseudo-loop dispatcher
+      auto &game{*static_cast<game_manager*>(data)};
+      game.loop_main();
+    }, this, 0, true);                                                          // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
+    // TODO: unreachable
+  }
+
+  // TODO: sensible timeout
 }
 
 void game_manager::loop_main() {
+  /// Main pseudo-loop
   logger << "Tick...";
   //glfwSwapBuffers(window.glfw_window);
 }
