@@ -485,7 +485,8 @@ void game_manager::loop_main() {
   logger << "Tick...";
   glfwPollEvents();
 
-  {
+  wgpu::TextureView texture_view{[&]{
+    /// Return a texture view from the current surface texture
     // get the surface texture for rendering to
     wgpu::SurfaceTexture surface_texture;
     webgpu.surface.GetCurrentTexture(&surface_texture);
@@ -497,48 +498,61 @@ void game_manager::loop_main() {
     }
 
     // get a texture view of the surface texture
-    {
-      wgpu::TextureViewDescriptor texture_view_descriptor{
-        .label = "Surface texture view",
-        .format = surface_texture.texture.GetFormat(),
-        .dimension = wgpu::TextureViewDimension::e2D,
-        .mipLevelCount = 1,
-        .arrayLayerCount = 1,
-      };
-      wgpu::TextureView texture_view{surface_texture.texture.CreateView(&texture_view_descriptor)};
-    }
-  }
-
-
+    wgpu::TextureViewDescriptor texture_view_descriptor{
+      .label = "Surface texture view",
+      .format = surface_texture.texture.GetFormat(),
+      .dimension = wgpu::TextureViewDimension::e2D,
+      .mipLevelCount = 1,
+      .arrayLayerCount = 1,
+    };
+    return surface_texture.texture.CreateView(&texture_view_descriptor);
+  }()};
 
   {
     wgpu::CommandEncoderDescriptor command_encoder_descriptor{
       .label = "Command encoder 1"
     };
-    auto command_encoder{webgpu.device.CreateCommandEncoder(&command_encoder_descriptor)};
+    wgpu::CommandEncoder command_encoder{webgpu.device.CreateCommandEncoder(&command_encoder_descriptor)};
+
+    {
+      wgpu::RenderPassColorAttachment render_pass_colour_attachment{
+        .view = texture_view,
+        .loadOp = wgpu::LoadOp::Clear,
+        .storeOp = wgpu::StoreOp::Store,
+        .clearValue = wgpu::Color{0, 0.5, 0.5, 1.0},
+      };
+
+      wgpu::RenderPassDescriptor render_pass_descriptor{
+        .label = "Render pass 1",
+        .colorAttachmentCount = 1,
+        .colorAttachments = &render_pass_colour_attachment,
+      };
+      wgpu::RenderPassEncoder render_pass_encoder{command_encoder.BeginRenderPass(&render_pass_descriptor)};
+
+      render_pass_encoder.End();
+    }
 
     command_encoder.InsertDebugMarker("Debug marker 1");
-    command_encoder.InsertDebugMarker("Debug marker 2");
 
     wgpu::CommandBufferDescriptor command_buffer_descriptor {
       .label = "Command buffer 1"
     };
-    auto command{command_encoder.Finish(&command_buffer_descriptor)};
+    wgpu::CommandBuffer command_buffer{command_encoder.Finish(&command_buffer_descriptor)};
 
-    webgpu.queue.OnSubmittedWorkDone(
-      [](WGPUQueueWorkDoneStatus status_c, void *data){
-        /// Submitted work done callback - note, this only fires for the subsequent submit
-        auto &game{*static_cast<game_manager*>(data)};
-        auto &logger{game.logger};
-        if(auto const status{static_cast<wgpu::QueueWorkDoneStatus>(status_c)}; status != wgpu::QueueWorkDoneStatus::Success) {
-          logger << "ERROR: WebGPU queue submitted work failure, status: " << enum_wgpu_name<wgpu::QueueWorkDoneStatus>(status_c);
-        }
-        logger << "DEBUG: WebGPU queue submitted work done, tick";
-      },
-      this
-    );
+    //webgpu.queue.OnSubmittedWorkDone(
+    //  [](WGPUQueueWorkDoneStatus status_c, void *data){
+    //    /// Submitted work done callback - note, this only fires for the subsequent submit
+    //    auto &game{*static_cast<game_manager*>(data)};
+    //    auto &logger{game.logger};
+    //    if(auto const status{static_cast<wgpu::QueueWorkDoneStatus>(status_c)}; status != wgpu::QueueWorkDoneStatus::Success) {
+    //      logger << "ERROR: WebGPU queue submitted work failure, status: " << enum_wgpu_name<wgpu::QueueWorkDoneStatus>(status_c);
+    //    }
+    //    logger << "DEBUG: WebGPU queue submitted work done";
+    //  },
+    //  this
+    //);
 
-    webgpu.queue.Submit(1, &command);
+    webgpu.queue.Submit(1, &command_buffer);
   }
 
   // not needed for emscripten?
