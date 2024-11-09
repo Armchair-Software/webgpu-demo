@@ -456,12 +456,12 @@ void game_manager::run() {
 void game_manager::loop_wait_init() {
   /// Main pseudo-loop waiting for initialisation to complete
   if(!webgpu.device) {
-    logger << "Waiting for WebGPU to become available...";
+    logger << "Waiting for WebGPU to become available";
     // TODO: sensible timeout
     return;
   }
 
-  logger << "WebGPU device ready, configuring surface...";
+  logger << "WebGPU device ready, configuring surface";
   // configure the surface
   {
     wgpu::SurfaceConfiguration surface_configuration{
@@ -474,7 +474,7 @@ void game_manager::loop_wait_init() {
     webgpu.surface.Configure(&surface_configuration);
   }
 
-  logger << "WebGPU acquiring queue...";
+  logger << "WebGPU acquiring queue";
   webgpu.queue = webgpu.device.GetQueue();
 
   logger << "Entering main loop";
@@ -536,6 +536,7 @@ void game_manager::loop_main() {
       };
       wgpu::RenderPassEncoder render_pass_encoder{command_encoder.BeginRenderPass(&render_pass_descriptor)};
 
+      // TODO: add timestamp query: https://eliemichel.github.io/LearnWebGPU/advanced-techniques/benchmarking/time.html
       render_pass_encoder.End();
     }
 
