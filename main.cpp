@@ -28,13 +28,20 @@ class game_manager {
 
   struct {
     wgpu::Surface surface;                                                      // the canvas surface for rendering
+    wgpu::Adapter adapter;                                                      // WebGPU adapter once it has been acquired
     wgpu::Device device;                                                        // WebGPU device once it has been acquired
-    wgpu::Queue queue;                                                          // the queue for this device
-    wgpu::CommandEncoder command_encoder;                                       // the command encoder for this device
+    wgpu::Queue queue;                                                          // the queue for this device, once it has been acquired
   } webgpu;
 
   struct {
     GLFWwindow *glfw_window{nullptr};                                           // GLFW handle for the window
+
+    vec2i viewport_size;                                                        // our idea of the size of the viewport we render to, in real pixels
+    vec2i canvas_size;                                                          // implementation-reported canvas size
+    vec2ui document_body_size;                                                  // these sizes are before pixel ratio scaling, i.e. they change when the browser window is zoomed
+    vec2ui window_inner_size;
+    vec2ui window_outer_size;
+    float device_pixel_ratio{1.0f};
   } window;
 
   //render::window window{logger, "Loading: Armchair WebGPU Demo"};
@@ -92,29 +99,22 @@ void game_manager::run() {
   logger << "render::window: GLFW monitor name: " << glfwGetMonitorName(nullptr);
 
   // find out about the initial canvas size and the current window and doc sizes
-  vec2i viewport_size;                                                          // our idea of the size of the viewport we render to, in real pixels
-  vec2i canvas_size;                                                            // implementation-reported canvas size
-  vec2ui document_body_size;                                                    // these sizes are before pixel ratio scaling, i.e. they change when the browser window is zoomed
-  vec2ui window_inner_size;
-  vec2ui window_outer_size;
-  float device_pixel_ratio{1.0f};
+  emscripten_get_canvas_element_size("#canvas", &window.canvas_size.x, &window.canvas_size.y);
+  window.document_body_size.assign(emscripten::val::global("document")["body"]["clientWidth"].as<unsigned int>(),
+                                   emscripten::val::global("document")["body"]["clientHeight"].as<unsigned int>());
+  window.window_inner_size.assign( emscripten::val::global("window")["innerWidth"].as<unsigned int>(),
+                                   emscripten::val::global("window")["innerHeight"].as<unsigned int>());
+  window.window_outer_size.assign( emscripten::val::global("window")["outerWidth"].as<unsigned int>(),
+                                   emscripten::val::global("window")["outerHeight"].as<unsigned int>());
+  window.device_pixel_ratio = emscripten::val::global("window")["devicePixelRatio"].as<float>(); // query device pixel ratio using JS
+  logger << "render::window: Window outer size: " << window.window_outer_size << " (device pixels: approx " << static_cast<vec2f>(window.window_outer_size) * window.device_pixel_ratio << ")";
+  logger << "render::window: Window inner size: " << window.window_inner_size << " (device pixels: approx " << static_cast<vec2f>(window.window_inner_size) * window.device_pixel_ratio << ")";
+  logger << "render::window: Document body size: " << window.document_body_size << " (device pixels: approx " << static_cast<vec2f>(window.document_body_size) * window.device_pixel_ratio << ")";
+  logger << "render::window: Default canvas size: " << window.canvas_size << " (device pixels: approx " << static_cast<vec2f>(window.canvas_size) * window.device_pixel_ratio << ")";
+  logger << "render::window: Device pixel ratio: " << window.device_pixel_ratio << " canvas pixels to 1 device pixel (" << static_cast<unsigned int>(std::round(100.0f * window.device_pixel_ratio)) << "% zoom)";
 
-  emscripten_get_canvas_element_size("#canvas", &canvas_size.x, &canvas_size.y);
-  document_body_size.assign(emscripten::val::global("document")["body"]["clientWidth"].as<unsigned int>(),
-                            emscripten::val::global("document")["body"]["clientHeight"].as<unsigned int>());
-  window_inner_size.assign( emscripten::val::global("window")["innerWidth"].as<unsigned int>(),
-                            emscripten::val::global("window")["innerHeight"].as<unsigned int>());
-  window_outer_size.assign( emscripten::val::global("window")["outerWidth"].as<unsigned int>(),
-                            emscripten::val::global("window")["outerHeight"].as<unsigned int>());
-  device_pixel_ratio = emscripten::val::global("window")["devicePixelRatio"].as<float>(); // query device pixel ratio using JS
-  logger << "render::window: Window outer size: " << window_outer_size << " (device pixels: approx " << static_cast<vec2f>(window_outer_size) * device_pixel_ratio << ")";
-  logger << "render::window: Window inner size: " << window_inner_size << " (device pixels: approx " << static_cast<vec2f>(window_inner_size) * device_pixel_ratio << ")";
-  logger << "render::window: Document body size: " << document_body_size << " (device pixels: approx " << static_cast<vec2f>(document_body_size) * device_pixel_ratio << ")";
-  logger << "render::window: Default canvas size: " << canvas_size << " (device pixels: approx " << static_cast<vec2f>(canvas_size) * device_pixel_ratio << ")";
-  logger << "render::window: Device pixel ratio: " << device_pixel_ratio << " canvas pixels to 1 device pixel (" << static_cast<unsigned int>(std::round(100.0f * device_pixel_ratio)) << "% zoom)";
-
-  viewport_size = window_inner_size;
-  logger << "render::window: Setting viewport requested size: " << viewport_size << " (device pixels: approx " << static_cast<vec2f>(viewport_size) * device_pixel_ratio << ")";
+  window.viewport_size = window.window_inner_size;
+  logger << "render::window: Setting viewport requested size: " << window.viewport_size << " (device pixels: approx " << static_cast<vec2f>(window.viewport_size) * window.device_pixel_ratio << ")";
 
   // TODO: resize callback here (from Project Raindrop)
   // TODO: resize callback should have surface.Configure ... size updates
@@ -123,8 +123,8 @@ void game_manager::run() {
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   // TODO: disable no-resize hint when resize callback has been implemented
 
-  window.glfw_window = glfwCreateWindow(canvas_size.x,                          // use initial canvas size
-                                        canvas_size.y,
+  window.glfw_window = glfwCreateWindow(window.canvas_size.x,                   // use initial canvas size
+                                        window.canvas_size.y,
                                         "Armchair WebGPU Demo",                 // window title
                                         nullptr,                                // monitor to use fullscreen, NULL here means run windowed - we always do under emscripten
                                         nullptr);                               // the context to share with, see http://stackoverflow.com/a/17792242/1678468
@@ -137,30 +137,11 @@ void game_manager::run() {
 
   glfwSetWindowUserPointer(window.glfw_window, this);                           // set callback userdata
 
-  /**
-  // Using webgpu.hpp:
-
-  wgpu::Instance instance{wgpu::createInstance()};
-  if(!instance) throw std::runtime_error{"Could not initialize WebGPU"};
-
-  logger << "DEBUG: WebGPU instance " << instance;
-
-  //wgpu::RequestAdapterOptions options{wgpu::Default};
-  wgpu::RequestAdapterOptions options;
-  options.powerPreference = wgpu::PowerPreference::HighPerformance;
-
-  wgpu::RequestAdapterCallback callback{[&](WGPURequestAdapterStatus status, wgpu::Adapter adapter, char const *message) {
-    logger << "DEBUG: WebGPU callback called, status " << magic_enum::enum_name(status) << ", adapter " << adapter << ", message " << message;
-  }};
-
-  auto adapter{instance.requestAdapter(options, std::move(callback))};
-
-  logger << "DEBUG: WebGPU adapter " << adapter;
-  **/
 
 
 
-  // Using Dawn's webgpu/webgpu_cpp.h
+
+
   {
     wgpu::Instance instance{wgpu::CreateInstance()};
     if(!instance) throw std::runtime_error{"Could not initialize WebGPU"};
@@ -179,7 +160,6 @@ void game_manager::run() {
       webgpu.surface = instance.CreateSurface(&surface_descriptor);
     }
     if(!webgpu.surface) throw std::runtime_error{"Could not create WebGPU surface"};
-
 
     // TODO: swap chain as commented code above
 
@@ -201,7 +181,8 @@ void game_manager::run() {
           throw std::runtime_error{"WebGPU: Could not get adapter"};
         }
 
-        wgpu::Adapter adapter{wgpu::Adapter::Acquire(adapter_ptr)};
+        auto &adapter{game.webgpu.adapter};
+        adapter = wgpu::Adapter::Acquire(adapter_ptr);
 
         {
           wgpu::SurfaceCapabilities surface_capabilities;
