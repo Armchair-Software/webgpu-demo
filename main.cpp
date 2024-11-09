@@ -364,6 +364,9 @@ void game_manager::loop_wait_init() {
     return;
   }
 
+  logger << "WebGPU device ready, acquiring queue...";
+  webgpu.queue = webgpu.device.GetQueue();
+
   logger << "Entering main loop";
   emscripten_cancel_main_loop();
   emscripten_set_main_loop_arg([](void *data){
