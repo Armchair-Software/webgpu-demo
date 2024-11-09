@@ -1,7 +1,7 @@
 #include <iostream>
-#include <array>
 #include <set>
 #include <thread>
+#include <vector>
 #include <boost/throw_exception.hpp>
 #include <emscripten.h>
 #include <emscripten/threading.h>
@@ -123,11 +123,11 @@ void game_manager::run() {
         std::set<wgpu::FeatureName> adapter_features;
         {
           // see https://developer.mozilla.org/en-US/docs/Web/API/GPUSupportedFeatures and https://www.w3.org/TR/webgpu/#feature-index
-          std::array<wgpu::FeatureName, 32> adapter_features_arr;               // at the time of writing there are 12 supported features, so 32 should be enough for a while
-          auto count{adapter.EnumerateFeatures(adapter_features_arr.data())};
+          auto const count{adapter.EnumerateFeatures(nullptr)};
           logger << "DEBUG: WebGPU adapter features count: " << count;
-          if(count > adapter_features_arr.size()) logger << "WARNING: Unable to fully enumerate adapter features due to inadequate array size " << adapter_features_arr.size() << ", need at least " << count;
-          for(unsigned int i{0}; i != std::min(count, adapter_features_arr.size()); ++i) {
+          std::vector<wgpu::FeatureName> adapter_features_arr(count);
+          adapter.EnumerateFeatures(adapter_features_arr.data());
+          for(unsigned int i{0}; i != adapter_features_arr.size(); ++i) {
             adapter_features.emplace(adapter_features_arr[i]);
           }
         }
@@ -243,11 +243,11 @@ void game_manager::run() {
 
           std::set<wgpu::FeatureName> device_features;
           {
-            std::array<wgpu::FeatureName, 32> device_features_arr;              // at the time of writing there are 12 supported features, so 32 should be enough for a while
-            auto count{device.EnumerateFeatures(device_features_arr.data())};
+            auto const count{device.EnumerateFeatures(nullptr)};
             logger << "DEBUG: WebGPU device features count: " << count;
-            if(count > device_features_arr.size()) logger << "WARNING: Unable to fully enumerate device features due to inadequate array size " << device_features_arr.size() << ", need at least " << count;
-            for(unsigned int i{0}; i != std::min(count, device_features_arr.size()); ++i) {
+            std::vector<wgpu::FeatureName> device_features_arr(count);
+            device.EnumerateFeatures(device_features_arr.data());
+            for(unsigned int i{0}; i != device_features_arr.size(); ++i) {
               device_features.emplace(device_features_arr[i]);
             }
           }
