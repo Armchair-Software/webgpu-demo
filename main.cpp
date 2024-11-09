@@ -434,18 +434,6 @@ void game_manager::loop_wait_init() {
 
   logger << "WebGPU device ready, acquiring queue...";
   webgpu.queue = webgpu.device.GetQueue();
-  webgpu.queue.OnSubmittedWorkDone(
-    [](WGPUQueueWorkDoneStatus status_c, void *data){
-      /// Submitted work done callback
-      auto &game{*static_cast<game_manager*>(data)};
-      auto &logger{game.logger};
-      if(auto const status{static_cast<wgpu::QueueWorkDoneStatus>(status_c)}; status != wgpu::QueueWorkDoneStatus::Success) {
-        logger << "ERROR: WebGPU queue submitted work failure, status: " << enum_wgpu_name<wgpu::QueueWorkDoneStatus>(status_c);
-      }
-      logger << "DEBUG: WebGPU queue submitted work done";
-    },
-    this
-  );
 
   logger << "Entering main loop";
   emscripten_cancel_main_loop();
