@@ -6,11 +6,13 @@
 #include <emscripten.h>
 #include <emscripten/threading.h>
 #include <emscripten/val.h>
-#include <magic_enum/magic_enum.hpp>
+#include <GLFW/glfw3.h>
 //#define WEBGPU_CPP_IMPLEMENTATION
 //#include <webgpu.hpp>
 #include <webgpu/webgpu_cpp.h>
+#include <magic_enum/magic_enum.hpp>
 #include "logstorm/logstorm.h"
+#include "vectorstorm/vector/vector2.h"
 
 #ifdef BOOST_NO_EXCEPTIONS
 void boost::throw_exception(std::exception const & e) {
@@ -25,12 +27,20 @@ class game_manager {
   logstorm::manager logger{logstorm::manager::build_with_sink<logstorm::sink::console>()}; // logging system
 
   struct {
+    wgpu::Surface surface;                                                      // the canvas surface for rendering
     wgpu::Device device;                                                        // WebGPU device once it has been acquired
-    wgpu::Queue queue;                                                          // The queue for this device
+    wgpu::Queue queue;                                                          // the queue for this device
+    wgpu::CommandEncoder command_encoder;                                       // the command encoder for this device
   } webgpu;
+
+  struct {
+    GLFWwindow *glfw_window{nullptr};                                           // GLFW handle for the window
+  } window;
 
   //render::window window{logger, "Loading: Armchair WebGPU Demo"};
   //gui::world_gui gui{logger, window};
+
+  std::function<void(int, char const*)> glfw_callback_error;                    // callback for unhandled GLFW errors
 
 public:
   void run();
@@ -67,6 +77,64 @@ std::string enum_wgpu_name(Tcpp enum_in) {
 void game_manager::run() {
   /// Launch the game pseudo-loop
   logger << "Starting Armchair WebGPU Demo";
+
+  // TODO: move this to a window init
+  if(glfwInit() != GLFW_TRUE) {                                                 // initialise the opengl window
+    logger << "render::window: ERROR: GLFW initialisation failed!  Cannot continue.";
+    throw std::runtime_error{"Could not initialize GLFW"};
+  }
+
+  glfw_callback_error = [&](int error_code, char const *description){
+    logger << "ERROR: GLFW: " << error_code << ": " << description;
+  };
+  glfwSetErrorCallback(glfw_callback_error.target<void(int, char const*)>());   // pass the target to GLFW to set the callback as a function pointer
+
+  logger << "render::window: GLFW monitor name: " << glfwGetMonitorName(nullptr);
+
+  // find out about the initial canvas size and the current window and doc sizes
+  vec2i viewport_size;                                                          // our idea of the size of the viewport we render to, in real pixels
+  vec2i canvas_size;                                                            // implementation-reported canvas size
+  vec2ui document_body_size;                                                    // these sizes are before pixel ratio scaling, i.e. they change when the browser window is zoomed
+  vec2ui window_inner_size;
+  vec2ui window_outer_size;
+  float device_pixel_ratio{1.0f};
+
+  emscripten_get_canvas_element_size("#canvas", &canvas_size.x, &canvas_size.y);
+  document_body_size.assign(emscripten::val::global("document")["body"]["clientWidth"].as<unsigned int>(),
+                            emscripten::val::global("document")["body"]["clientHeight"].as<unsigned int>());
+  window_inner_size.assign( emscripten::val::global("window")["innerWidth"].as<unsigned int>(),
+                            emscripten::val::global("window")["innerHeight"].as<unsigned int>());
+  window_outer_size.assign( emscripten::val::global("window")["outerWidth"].as<unsigned int>(),
+                            emscripten::val::global("window")["outerHeight"].as<unsigned int>());
+  device_pixel_ratio = emscripten::val::global("window")["devicePixelRatio"].as<float>(); // query device pixel ratio using JS
+  logger << "render::window: Window outer size: " << window_outer_size << " (device pixels: approx " << static_cast<vec2f>(window_outer_size) * device_pixel_ratio << ")";
+  logger << "render::window: Window inner size: " << window_inner_size << " (device pixels: approx " << static_cast<vec2f>(window_inner_size) * device_pixel_ratio << ")";
+  logger << "render::window: Document body size: " << document_body_size << " (device pixels: approx " << static_cast<vec2f>(document_body_size) * device_pixel_ratio << ")";
+  logger << "render::window: Default canvas size: " << canvas_size << " (device pixels: approx " << static_cast<vec2f>(canvas_size) * device_pixel_ratio << ")";
+  logger << "render::window: Device pixel ratio: " << device_pixel_ratio << " canvas pixels to 1 device pixel (" << static_cast<unsigned int>(std::round(100.0f * device_pixel_ratio)) << "% zoom)";
+
+  viewport_size = window_inner_size;
+  logger << "render::window: Setting viewport requested size: " << viewport_size << " (device pixels: approx " << static_cast<vec2f>(viewport_size) * device_pixel_ratio << ")";
+
+  // TODO: resize callback here (from Project Raindrop)
+
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+  // TODO: disable no-resize hint when resize callback has been implemented
+
+  window.glfw_window = glfwCreateWindow(canvas_size.x,                          // use initial canvas size
+                                        canvas_size.y,
+                                        "Armchair WebGPU Demo",                 // window title
+                                        nullptr,                                // monitor to use fullscreen, NULL here means run windowed - we always do under emscripten
+                                        nullptr);                               // the context to share with, see http://stackoverflow.com/a/17792242/1678468
+  if(!window.glfw_window) {
+    logger << "render::window: ERROR: GLFW window creation failed!  Cannot continue.";
+    throw std::runtime_error{"Could not create a GLFW window"};
+  }
+  // TODO: is this needed?
+  //glfwMakeContextCurrent(glfw_window);
+
+  glfwSetWindowUserPointer(window.glfw_window, this);                           // set callback userdata
 
   /**
   // Using webgpu.hpp:
@@ -392,6 +460,8 @@ void game_manager::loop_wait_init() {
 void game_manager::loop_main() {
   /// Main pseudo-loop
   logger << "Tick...";
+  glfwPollEvents();
+
   //glfwSwapBuffers(window.glfw_window);
 }
 
