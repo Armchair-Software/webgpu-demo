@@ -226,7 +226,14 @@ void game_manager::run() {
           .requiredFeatures = required_features_arr.data(),
           .defaultQueue = {},
           // TODO: defaultQueue label
-          // TODO: specify requiredLimits, deviceLostCallback etc
+          // TODO: specify requiredLimits (use a required and desired limits mechanism again)
+          .deviceLostCallback = [](WGPUDeviceLostReason reason_c, char const *message, void *data) {
+            auto &game{*static_cast<game_manager*>(data)};
+            auto &logger{game.logger};
+            auto const reason{static_cast<wgpu::DeviceLostReason>(reason_c)};
+            logger << "ERROR: WebGPU lost device, reason " << magic_enum::enum_name(reason) << ": " << message;
+          },
+          .deviceLostUserdata = &game,
         };
 
         adapter.RequestDevice(
