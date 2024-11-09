@@ -143,9 +143,11 @@ void game_manager::run() {
 
 
   {
+    // create a WebGPU instance
     wgpu::Instance instance{wgpu::CreateInstance()};
     if(!instance) throw std::runtime_error{"Could not initialize WebGPU"};
 
+    // create a surface
     {
       wgpu::SurfaceDescriptorFromCanvasHTMLSelector surface_descriptor_from_canvas;
       surface_descriptor_from_canvas.sType = wgpu::SType::SurfaceDescriptorFromCanvasHTMLSelector;
@@ -164,6 +166,7 @@ void game_manager::run() {
     // TODO: swap chain as commented code above
 
 
+    // request an adapter
     wgpu::RequestAdapterOptions adapter_request_options{
       .compatibleSurface = webgpu.surface,
       .powerPreference = wgpu::PowerPreference::HighPerformance,
@@ -184,6 +187,7 @@ void game_manager::run() {
         auto &adapter{game.webgpu.adapter};
         adapter = wgpu::Adapter::Acquire(adapter_ptr);
 
+        // report surface and adapter capabilities
         {
           wgpu::SurfaceCapabilities surface_capabilities;
           game.webgpu.surface.GetCapabilities(adapter, &surface_capabilities);
@@ -328,6 +332,7 @@ void game_manager::run() {
           required_features_arr.emplace_back(feature);
         }
 
+        // request a device
         wgpu::DeviceDescriptor device_descriptor{
           .requiredFeatureCount = required_features_arr.size(),
           .requiredFeatures = required_features_arr.data(),
@@ -357,6 +362,7 @@ void game_manager::run() {
             auto &device{game.webgpu.device};
             device = wgpu::Device::Acquire(device_ptr);
 
+            // report device capabilities
             std::set<wgpu::FeatureName> device_features;
             {
               auto const count{device.EnumerateFeatures(nullptr)};
@@ -455,7 +461,7 @@ void game_manager::loop_wait_init() {
     /// Main pseudo-loop dispatcher
     auto &game{*static_cast<game_manager*>(data)};
     game.loop_main();
-  }, this, 0, true);                                                          // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
+  }, this, 0, true);                                                            // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
   std::unreachable();
 }
 
