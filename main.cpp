@@ -486,6 +486,32 @@ void game_manager::loop_main() {
   glfwPollEvents();
 
   {
+    // get the surface texture for rendering to
+    wgpu::SurfaceTexture surface_texture;
+    webgpu.surface.GetCurrentTexture(&surface_texture);
+    if(surface_texture.status != wgpu::SurfaceGetCurrentTextureStatus::Success) {
+      logger << "ERROR: WebGPU failed to get surface texture: " << magic_enum::enum_name(surface_texture.status);
+    }
+    if(surface_texture.suboptimal) {
+      logger << "WARNING: WebGPU surface texture is suboptimal";
+    }
+
+    // get a texture view of the surface texture
+    {
+      wgpu::TextureViewDescriptor texture_view_descriptor{
+        .label = "Surface texture view",
+        .format = surface_texture.texture.GetFormat(),
+        .dimension = wgpu::TextureViewDimension::e2D,
+        .mipLevelCount = 1,
+        .arrayLayerCount = 1,
+      };
+      wgpu::TextureView texture_view{surface_texture.texture.CreateView(&texture_view_descriptor)};
+    }
+  }
+
+
+
+  {
     wgpu::CommandEncoderDescriptor command_encoder_descriptor{
       .label = "Command encoder 1"
     };
@@ -499,7 +525,6 @@ void game_manager::loop_main() {
     };
     auto command{command_encoder.Finish(&command_buffer_descriptor)};
 
-    logger << "DEBUG: Before callback";
     webgpu.queue.OnSubmittedWorkDone(
       [](WGPUQueueWorkDoneStatus status_c, void *data){
         /// Submitted work done callback - note, this only fires for the subsequent submit
@@ -513,10 +538,11 @@ void game_manager::loop_main() {
       this
     );
 
-    logger << "DEBUG: About to submit";
     webgpu.queue.Submit(1, &command);
-    logger << "DEBUG: After submit";
   }
+
+  // not needed for emscripten?
+  //webgpu.surface.Present();
 
   //glfwSwapBuffers(window.glfw_window);
 }
