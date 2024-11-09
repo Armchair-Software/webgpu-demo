@@ -452,7 +452,22 @@ void game_manager::loop_wait_init() {
     return;
   }
 
-  logger << "WebGPU device ready, acquiring queue...";
+  logger << "WebGPU device ready, configuring surface...";
+  // configure the surface
+  {
+    auto const preferred_format{webgpu.surface.GetPreferredFormat(webgpu.adapter)};
+    logger << "WebGPU surface preferred format for this adapter: " << magic_enum::enum_name(preferred_format);
+    wgpu::SurfaceConfiguration surface_configuration{
+      .device = webgpu.device,
+      .format = preferred_format,
+      .viewFormats = nullptr,
+      .width  = static_cast<uint32_t>(window.canvas_size.x),
+      .height = static_cast<uint32_t>(window.canvas_size.y),
+    };
+    webgpu.surface.Configure(&surface_configuration);
+  }
+
+  logger << "WebGPU acquiring queue...";
   webgpu.queue = webgpu.device.GetQueue();
 
   logger << "Entering main loop";
