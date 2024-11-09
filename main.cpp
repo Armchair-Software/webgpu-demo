@@ -25,8 +25,8 @@ class game_manager {
   logstorm::manager logger{logstorm::manager::build_with_sink<logstorm::sink::console>()}; // logging system
 
   struct {
-    bool ready{false};
-    wgpu::Device device;
+    wgpu::Device device;                                                        // WebGPU device once it has been acquired
+    wgpu::Queue queue;                                                          // The queue for this device
   } webgpu;
 
   //render::window window{logger, "Loading: Armchair WebGPU Demo"};
@@ -335,7 +335,6 @@ void game_manager::run() {
               },
               &game
             );
-            game.webgpu.ready = true;
           },
           data
         );
@@ -344,10 +343,9 @@ void game_manager::run() {
     );
   }
 
-  // TODO: can we just do this?
+  // Possible alternative:
   //#include <emscripten/html5_webgpu.h>
   //wgpu::Device device{wgpu::Device::Acquire(emscripten_webgpu_get_device())};
-
 
   logger << "Entering WebGPU init loop";
   emscripten_set_main_loop_arg([](void *data){
@@ -360,8 +358,8 @@ void game_manager::run() {
 
 void game_manager::loop_wait_init() {
   /// Main pseudo-loop waiting for initialisation to complete
-  logger << "Waiting for WebGPU to become available...";
-  if(!webgpu.ready) {
+  if(!webgpu.device) {
+    logger << "Waiting for WebGPU to become available...";
     // TODO: sensible timeout
     return;
   }
