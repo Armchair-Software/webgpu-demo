@@ -164,7 +164,28 @@ void game_manager::run() {
     wgpu::Instance instance{wgpu::CreateInstance()};
     if(!instance) throw std::runtime_error{"Could not initialize WebGPU"};
 
+
+    wgpu::SurfaceDescriptorFromCanvasHTMLSelector surface_descriptor_from_canvas;
+    surface_descriptor_from_canvas.sType = wgpu::SType::SurfaceDescriptorFromCanvasHTMLSelector;
+    // TODO: already set by default, remove the above?
+    surface_descriptor_from_canvas.selector = "#canvas";
+    // TODO: also try "#canvas" vs "canvas" and check for other examples
+
+
+    wgpu::SurfaceDescriptor surface_descriptor{
+      .nextInChain = &surface_descriptor_from_canvas,
+      .label = "GLFW surface",
+    };
+    webgpu.surface = instance.CreateSurface(&surface_descriptor);
+    if(!webgpu.surface) throw std::runtime_error{"Could not create WebGPU surface"};
+    // TODO: do we keep the surface persistent, or do we let it go out of scope?
+
+    // TODO: swap chain as commented code above
+
+
     wgpu::RequestAdapterOptions adapter_request_options{
+      .compatibleSurface = webgpu.surface,
+      // TODO: should we do surface.RequestAdapter instead?
       .powerPreference = wgpu::PowerPreference::HighPerformance,
     };
 
@@ -179,10 +200,22 @@ void game_manager::run() {
           logger << "ERROR: WebGPU adapter request failure, status " << enum_wgpu_name<wgpu::RequestAdapterStatus>(status_c);
           throw std::runtime_error{"WebGPU: Could not get adapter"};
         }
-        //game.webgpu.adapter = adapter;
 
         wgpu::Adapter adapter{wgpu::Adapter::Acquire(adapter_ptr)};
 
+        {
+          wgpu::SurfaceCapabilities surface_capabilities;
+          game.webgpu.surface.GetCapabilities(adapter, &surface_capabilities);
+          for(size_t i{0}; i != surface_capabilities.formatCount; ++i) {
+            logger << "DEBUG: WebGPU surface capabilities: texture formats: " << magic_enum::enum_name(surface_capabilities.formats[i]);
+          }
+          for(size_t i{0}; i != surface_capabilities.presentModeCount; ++i) {
+            logger << "DEBUG: WebGPU surface capabilities: present modes: " << magic_enum::enum_name(surface_capabilities.presentModes[i]);
+          }
+          for(size_t i{0}; i != surface_capabilities.alphaModeCount; ++i) {
+            logger << "DEBUG: WebGPU surface capabilities: alpha modes: " << magic_enum::enum_name(surface_capabilities.alphaModes[i]);
+          }
+        }
         {
           wgpu::AdapterInfo adapter_info;
           adapter.GetInfo(&adapter_info);
