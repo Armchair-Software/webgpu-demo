@@ -462,6 +462,39 @@ void game_manager::loop_main() {
   logger << "Tick...";
   glfwPollEvents();
 
+  {
+    wgpu::CommandEncoderDescriptor command_encoder_descriptor{
+      .label = "Command encoder 1"
+    };
+    auto command_encoder{webgpu.device.CreateCommandEncoder(&command_encoder_descriptor)};
+
+    command_encoder.InsertDebugMarker("Debug marker 1");
+    command_encoder.InsertDebugMarker("Debug marker 2");
+
+    wgpu::CommandBufferDescriptor command_buffer_descriptor {
+      .label = "Command buffer 1"
+    };
+    auto command{command_encoder.Finish(&command_buffer_descriptor)};
+
+    logger << "DEBUG: Before callback";
+    webgpu.queue.OnSubmittedWorkDone(
+      [](WGPUQueueWorkDoneStatus status_c, void *data){
+        /// Submitted work done callback - note, this only fires for the subsequent submit
+        auto &game{*static_cast<game_manager*>(data)};
+        auto &logger{game.logger};
+        if(auto const status{static_cast<wgpu::QueueWorkDoneStatus>(status_c)}; status != wgpu::QueueWorkDoneStatus::Success) {
+          logger << "ERROR: WebGPU queue submitted work failure, status: " << enum_wgpu_name<wgpu::QueueWorkDoneStatus>(status_c);
+        }
+        logger << "DEBUG: WebGPU queue submitted work done, tick";
+      },
+      this
+    );
+
+    logger << "DEBUG: About to submit";
+    webgpu.queue.Submit(1, &command);
+    logger << "DEBUG: After submit";
+  }
+
   //glfwSwapBuffers(window.glfw_window);
 }
 
