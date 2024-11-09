@@ -355,25 +355,25 @@ void game_manager::run() {
     auto &game{*static_cast<game_manager*>(data)};
     game.loop_wait_init();
   }, this, 0, true);                                                            // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
-  // TODO: unreachable
+  std::unreachable();
 }
 
 void game_manager::loop_wait_init() {
   /// Main pseudo-loop waiting for initialisation to complete
   logger << "Waiting for WebGPU to become available...";
-
-  if(webgpu.ready) {
-    logger << "Entering main loop";
-    emscripten_cancel_main_loop();
-    emscripten_set_main_loop_arg([](void *data){
-      /// Main pseudo-loop dispatcher
-      auto &game{*static_cast<game_manager*>(data)};
-      game.loop_main();
-    }, this, 0, true);                                                          // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
-    // TODO: unreachable
+  if(!webgpu.ready) {
+    // TODO: sensible timeout
+    return;
   }
 
-  // TODO: sensible timeout
+  logger << "Entering main loop";
+  emscripten_cancel_main_loop();
+  emscripten_set_main_loop_arg([](void *data){
+    /// Main pseudo-loop dispatcher
+    auto &game{*static_cast<game_manager*>(data)};
+    game.loop_main();
+  }, this, 0, true);                                                          // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
+  std::unreachable();
 }
 
 void game_manager::loop_main() {
@@ -386,7 +386,6 @@ auto main()->int {
   try {
     game_manager game;
     game.run();
-
   } catch (std::exception const &e) {
     std::cerr << "Exception: " << e.what() << std::endl;
     EM_ASM(alert("Error: Press F12 to see console for details."));
