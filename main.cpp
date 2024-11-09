@@ -117,6 +117,7 @@ void game_manager::run() {
   logger << "render::window: Setting viewport requested size: " << viewport_size << " (device pixels: approx " << static_cast<vec2f>(viewport_size) * device_pixel_ratio << ")";
 
   // TODO: resize callback here (from Project Raindrop)
+  // TODO: resize callback should have surface.Configure ... size updates
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -164,28 +165,27 @@ void game_manager::run() {
     wgpu::Instance instance{wgpu::CreateInstance()};
     if(!instance) throw std::runtime_error{"Could not initialize WebGPU"};
 
+    {
+      wgpu::SurfaceDescriptorFromCanvasHTMLSelector surface_descriptor_from_canvas;
+      surface_descriptor_from_canvas.sType = wgpu::SType::SurfaceDescriptorFromCanvasHTMLSelector;
+      // TODO: already set by default, remove the above?
+      surface_descriptor_from_canvas.selector = "#canvas";
+      //surface_descriptor_from_canvas.selector = "canvas";
 
-    wgpu::SurfaceDescriptorFromCanvasHTMLSelector surface_descriptor_from_canvas;
-    surface_descriptor_from_canvas.sType = wgpu::SType::SurfaceDescriptorFromCanvasHTMLSelector;
-    // TODO: already set by default, remove the above?
-    surface_descriptor_from_canvas.selector = "#canvas";
-    // TODO: also try "#canvas" vs "canvas" and check for other examples
-
-
-    wgpu::SurfaceDescriptor surface_descriptor{
-      .nextInChain = &surface_descriptor_from_canvas,
-      .label = "GLFW surface",
-    };
-    webgpu.surface = instance.CreateSurface(&surface_descriptor);
+      wgpu::SurfaceDescriptor surface_descriptor{
+        .nextInChain = &surface_descriptor_from_canvas,
+        .label = "Canvas surface",
+      };
+      webgpu.surface = instance.CreateSurface(&surface_descriptor);
+    }
     if(!webgpu.surface) throw std::runtime_error{"Could not create WebGPU surface"};
-    // TODO: do we keep the surface persistent, or do we let it go out of scope?
+
 
     // TODO: swap chain as commented code above
 
 
     wgpu::RequestAdapterOptions adapter_request_options{
       .compatibleSurface = webgpu.surface,
-      // TODO: should we do surface.RequestAdapter instead?
       .powerPreference = wgpu::PowerPreference::HighPerformance,
     };
 
