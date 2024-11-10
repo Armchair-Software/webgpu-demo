@@ -239,46 +239,46 @@ void game_manager::run() {
         for(auto const feature : adapter_features) {
           logger << "DEBUG: WebGPU adapter features: " << enum_wgpu_name<wgpu::FeatureName, WGPUFeatureName>(feature);
         }
-        {
-          #ifndef NDEBUG
-            wgpu::SupportedLimits adapter_limits;
-            bool result{adapter.GetLimits(&adapter_limits)};
-            logger << "DEBUG: WebGPU adapter limits result: " << std::boolalpha << result;
-            logger << "DEBUG: WebGPU adapter limits nextInChain: " << adapter_limits.nextInChain;
-            logger << "DEBUG: WebGPU adapter limits maxTextureDimension1D: " << adapter_limits.limits.maxTextureDimension1D;
-            logger << "DEBUG: WebGPU adapter limits maxTextureDimension2D: " << adapter_limits.limits.maxTextureDimension2D;
-            logger << "DEBUG: WebGPU adapter limits maxTextureDimension3D: " << adapter_limits.limits.maxTextureDimension3D;
-            logger << "DEBUG: WebGPU adapter limits maxTextureArrayLayers: " << adapter_limits.limits.maxTextureArrayLayers;
-            logger << "DEBUG: WebGPU adapter limits maxBindGroups: " << adapter_limits.limits.maxBindGroups;
-            logger << "DEBUG: WebGPU adapter limits maxBindGroupsPlusVertexBuffers: " << adapter_limits.limits.maxBindGroupsPlusVertexBuffers;
-            logger << "DEBUG: WebGPU adapter limits maxBindingsPerBindGroup: " << adapter_limits.limits.maxBindingsPerBindGroup;
-            logger << "DEBUG: WebGPU adapter limits maxDynamicUniformBuffersPerPipelineLayout: " << adapter_limits.limits.maxDynamicUniformBuffersPerPipelineLayout;
-            logger << "DEBUG: WebGPU adapter limits maxDynamicStorageBuffersPerPipelineLayout: " << adapter_limits.limits.maxDynamicStorageBuffersPerPipelineLayout;
-            logger << "DEBUG: WebGPU adapter limits maxSamplersPerShaderStage: " << adapter_limits.limits.maxSamplersPerShaderStage;
-            logger << "DEBUG: WebGPU adapter limits maxStorageBuffersPerShaderStage: " << adapter_limits.limits.maxStorageBuffersPerShaderStage;
-            logger << "DEBUG: WebGPU adapter limits maxStorageTexturesPerShaderStage: " << adapter_limits.limits.maxStorageTexturesPerShaderStage;
-            logger << "DEBUG: WebGPU adapter limits maxUniformBuffersPerShaderStage: " << adapter_limits.limits.maxUniformBuffersPerShaderStage;
-            logger << "DEBUG: WebGPU adapter limits maxUniformBufferBindingSize: " << adapter_limits.limits.maxUniformBufferBindingSize;
-            logger << "DEBUG: WebGPU adapter limits maxStorageBufferBindingSize: " << adapter_limits.limits.maxStorageBufferBindingSize;
-            logger << "DEBUG: WebGPU adapter limits minUniformBufferOffsetAlignment: " << adapter_limits.limits.minUniformBufferOffsetAlignment;
-            logger << "DEBUG: WebGPU adapter limits minStorageBufferOffsetAlignment: " << adapter_limits.limits.minStorageBufferOffsetAlignment;
-            logger << "DEBUG: WebGPU adapter limits maxVertexBuffers: " << adapter_limits.limits.maxVertexBuffers;
-            logger << "DEBUG: WebGPU adapter limits maxBufferSize: " << adapter_limits.limits.maxBufferSize;
-            logger << "DEBUG: WebGPU adapter limits maxVertexAttributes: " << adapter_limits.limits.maxVertexAttributes;
-            logger << "DEBUG: WebGPU adapter limits maxVertexBufferArrayStride: " << adapter_limits.limits.maxVertexBufferArrayStride;
-            logger << "DEBUG: WebGPU adapter limits maxInterStageShaderComponents: " << adapter_limits.limits.maxInterStageShaderComponents;
-            logger << "DEBUG: WebGPU adapter limits maxInterStageShaderVariables: " << adapter_limits.limits.maxInterStageShaderVariables;
-            logger << "DEBUG: WebGPU adapter limits maxColorAttachments: " << adapter_limits.limits.maxColorAttachments;
-            logger << "DEBUG: WebGPU adapter limits maxColorAttachmentBytesPerSample: " << adapter_limits.limits.maxColorAttachmentBytesPerSample;
-            logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupStorageSize: " << adapter_limits.limits.maxComputeWorkgroupStorageSize;
-            logger << "DEBUG: WebGPU adapter limits maxComputeInvocationsPerWorkgroup: " << adapter_limits.limits.maxComputeInvocationsPerWorkgroup;
-            logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeX: " << adapter_limits.limits.maxComputeWorkgroupSizeX;
-            logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeY: " << adapter_limits.limits.maxComputeWorkgroupSizeY;
-            logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeZ: " << adapter_limits.limits.maxComputeWorkgroupSizeZ;
-            logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupsPerDimension: " << adapter_limits.limits.maxComputeWorkgroupsPerDimension;
-          #endif // NDEBUG
-        }
 
+        wgpu::SupportedLimits adapter_limits;
+        bool result{adapter.GetLimits(&adapter_limits)};
+        #ifndef NDEBUG
+          logger << "DEBUG: WebGPU adapter limits result: " << std::boolalpha << result;
+          logger << "DEBUG: WebGPU adapter limits nextInChain: " << adapter_limits.nextInChain;
+          logger << "DEBUG: WebGPU adapter limits maxTextureDimension1D: " << adapter_limits.limits.maxTextureDimension1D;
+          logger << "DEBUG: WebGPU adapter limits maxTextureDimension2D: " << adapter_limits.limits.maxTextureDimension2D;
+          logger << "DEBUG: WebGPU adapter limits maxTextureDimension3D: " << adapter_limits.limits.maxTextureDimension3D;
+          logger << "DEBUG: WebGPU adapter limits maxTextureArrayLayers: " << adapter_limits.limits.maxTextureArrayLayers;
+          logger << "DEBUG: WebGPU adapter limits maxBindGroups: " << adapter_limits.limits.maxBindGroups;
+          logger << "DEBUG: WebGPU adapter limits maxBindGroupsPlusVertexBuffers: " << adapter_limits.limits.maxBindGroupsPlusVertexBuffers;
+          logger << "DEBUG: WebGPU adapter limits maxBindingsPerBindGroup: " << adapter_limits.limits.maxBindingsPerBindGroup;
+          logger << "DEBUG: WebGPU adapter limits maxDynamicUniformBuffersPerPipelineLayout: " << adapter_limits.limits.maxDynamicUniformBuffersPerPipelineLayout;
+          logger << "DEBUG: WebGPU adapter limits maxDynamicStorageBuffersPerPipelineLayout: " << adapter_limits.limits.maxDynamicStorageBuffersPerPipelineLayout;
+          logger << "DEBUG: WebGPU adapter limits maxSamplersPerShaderStage: " << adapter_limits.limits.maxSamplersPerShaderStage;
+          logger << "DEBUG: WebGPU adapter limits maxStorageBuffersPerShaderStage: " << adapter_limits.limits.maxStorageBuffersPerShaderStage;
+          logger << "DEBUG: WebGPU adapter limits maxStorageTexturesPerShaderStage: " << adapter_limits.limits.maxStorageTexturesPerShaderStage;
+          logger << "DEBUG: WebGPU adapter limits maxUniformBuffersPerShaderStage: " << adapter_limits.limits.maxUniformBuffersPerShaderStage;
+          logger << "DEBUG: WebGPU adapter limits maxUniformBufferBindingSize: " << adapter_limits.limits.maxUniformBufferBindingSize;
+          logger << "DEBUG: WebGPU adapter limits maxStorageBufferBindingSize: " << adapter_limits.limits.maxStorageBufferBindingSize;
+          logger << "DEBUG: WebGPU adapter limits minUniformBufferOffsetAlignment: " << adapter_limits.limits.minUniformBufferOffsetAlignment;
+          logger << "DEBUG: WebGPU adapter limits minStorageBufferOffsetAlignment: " << adapter_limits.limits.minStorageBufferOffsetAlignment;
+          logger << "DEBUG: WebGPU adapter limits maxVertexBuffers: " << adapter_limits.limits.maxVertexBuffers;
+          logger << "DEBUG: WebGPU adapter limits maxBufferSize: " << adapter_limits.limits.maxBufferSize;
+          logger << "DEBUG: WebGPU adapter limits maxVertexAttributes: " << adapter_limits.limits.maxVertexAttributes;
+          logger << "DEBUG: WebGPU adapter limits maxVertexBufferArrayStride: " << adapter_limits.limits.maxVertexBufferArrayStride;
+          logger << "DEBUG: WebGPU adapter limits maxInterStageShaderComponents: " << adapter_limits.limits.maxInterStageShaderComponents;
+          logger << "DEBUG: WebGPU adapter limits maxInterStageShaderVariables: " << adapter_limits.limits.maxInterStageShaderVariables;
+          logger << "DEBUG: WebGPU adapter limits maxColorAttachments: " << adapter_limits.limits.maxColorAttachments;
+          logger << "DEBUG: WebGPU adapter limits maxColorAttachmentBytesPerSample: " << adapter_limits.limits.maxColorAttachmentBytesPerSample;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupStorageSize: " << adapter_limits.limits.maxComputeWorkgroupStorageSize;
+          logger << "DEBUG: WebGPU adapter limits maxComputeInvocationsPerWorkgroup: " << adapter_limits.limits.maxComputeInvocationsPerWorkgroup;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeX: " << adapter_limits.limits.maxComputeWorkgroupSizeX;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeY: " << adapter_limits.limits.maxComputeWorkgroupSizeY;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeZ: " << adapter_limits.limits.maxComputeWorkgroupSizeZ;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupsPerDimension: " << adapter_limits.limits.maxComputeWorkgroupsPerDimension;
+        #endif // NDEBUG
+
+        // specify required features for the device
         std::set<wgpu::FeatureName> required_features{
           wgpu::FeatureName::Depth32FloatStencil8,
           #ifndef NDEBUG
@@ -310,14 +310,98 @@ void game_manager::run() {
           required_features_arr.emplace_back(feature);
         }
 
+        // specify required limits for the device
+        struct limit {
+          wgpu::Limits required{
+            .maxVertexBuffers{1},
+            .maxBufferSize{6 * 2 * sizeof(float)},
+            .maxVertexAttributes{1},
+            .maxVertexBufferArrayStride{2 * sizeof(float)},
+          };
+          wgpu::Limits desired{};
+        } requested_limits;
+
+        auto require_limit{[&]<typename T>(std::string const &name, T available, T required, T desired){
+          constexpr auto undefined{std::numeric_limits<T>::max()};
+          if(required == undefined) {                                           // no hard requirement for this value
+            if(desired == undefined) {                                          //   no specific desire for this value
+              return undefined;                                                 //     we don't care about the value
+            } else {                                                            //   we have a desire for a specific value
+              if(available == undefined) {                                      //     but it's not available
+                logger << "WebGPU: Desired minimum limit for " << name << " is " << desired << " but is unavailable, ignoring";
+                return undefined;                                               //       that's fine, we don't care
+              } else {                                                          //     some limit is available
+                logger << "WebGPU: Desired minimum limit for " << name << " is " << desired << ", requesting " << std::min(desired, available);
+                return std::min(desired, available);                            //       we'll accept our desired amount or the limit, whichever is lowest
+              }
+            }
+          } else {                                                              // we have a hard requirement for this value
+            if(available == undefined) {                                        //   but it's not available
+              logger << "WebGPU: Required minimum limit " << required << " is not available for " << name << " (limit undefined), cannot continue";
+              throw std::runtime_error("WebGPU: Required adapter limits not met (limit undefined)");
+            } else {                                                            //   some limit is available
+              if(available < required) {                                        //     but the limit is below our requirement
+                logger << "WebGPU: Required minimum limit " << required << " is not available for " << name << " (max " << available << "), cannot continue";
+                throw std::runtime_error("WebGPU: Required adapter limits not met");
+              } else {                                                          //     the limit is acceptable
+                if(desired == undefined) {                                      //       we have no desire beyond the basic requirement
+                  logger << "WebGPU: Required minimum limit for " << name << " is " << required << ", available";
+                  return required;                                              //         we'll accept the required minimum
+                } else {                                                        //       we desire a value beyond the basic requirement
+                  assert(desired > required);                                   //         make sure we're not requesting nonsense with desired values below required minimum
+                  logger << "WebGPU: Desired minimum limit for " << name << " is " << desired << ", requesting " << std::min(desired, available);
+                  return std::min(desired, available);                          //         we'll accept our desired amount or the limit, whichever is lowest
+                }
+              }
+            }
+          }
+        }};
+
+        wgpu::RequiredLimits const required_limits{
+          .limits{
+            .maxTextureDimension1D{                    require_limit("maxTextureDimension1D",                     adapter_limits.limits.maxTextureDimension1D,                     requested_limits.required.maxTextureDimension1D,                     requested_limits.desired.maxTextureDimension1D                    )},
+            .maxTextureDimension2D{                    require_limit("maxTextureDimension2D",                     adapter_limits.limits.maxTextureDimension2D,                     requested_limits.required.maxTextureDimension2D,                     requested_limits.desired.maxTextureDimension2D                    )},
+            .maxTextureDimension3D{                    require_limit("maxTextureDimension3D",                     adapter_limits.limits.maxTextureDimension3D,                     requested_limits.required.maxTextureDimension3D,                     requested_limits.desired.maxTextureDimension3D                    )},
+            .maxTextureArrayLayers{                    require_limit("maxTextureArrayLayers",                     adapter_limits.limits.maxTextureArrayLayers,                     requested_limits.required.maxTextureArrayLayers,                     requested_limits.desired.maxTextureArrayLayers                    )},
+            .maxBindGroups{                            require_limit("maxBindGroups",                             adapter_limits.limits.maxBindGroups,                             requested_limits.required.maxBindGroups,                             requested_limits.desired.maxBindGroups                            )},
+            .maxBindGroupsPlusVertexBuffers{           require_limit("maxBindGroupsPlusVertexBuffers",            adapter_limits.limits.maxBindGroupsPlusVertexBuffers,            requested_limits.required.maxBindGroupsPlusVertexBuffers,            requested_limits.desired.maxBindGroupsPlusVertexBuffers           )},
+            .maxBindingsPerBindGroup{                  require_limit("maxBindingsPerBindGroup",                   adapter_limits.limits.maxBindingsPerBindGroup,                   requested_limits.required.maxBindingsPerBindGroup,                   requested_limits.desired.maxBindingsPerBindGroup                  )},
+            .maxDynamicUniformBuffersPerPipelineLayout{require_limit("maxDynamicUniformBuffersPerPipelineLayout", adapter_limits.limits.maxDynamicUniformBuffersPerPipelineLayout, requested_limits.required.maxDynamicUniformBuffersPerPipelineLayout, requested_limits.desired.maxDynamicUniformBuffersPerPipelineLayout)},
+            .maxDynamicStorageBuffersPerPipelineLayout{require_limit("maxDynamicStorageBuffersPerPipelineLayout", adapter_limits.limits.maxDynamicStorageBuffersPerPipelineLayout, requested_limits.required.maxDynamicStorageBuffersPerPipelineLayout, requested_limits.desired.maxDynamicStorageBuffersPerPipelineLayout)},
+            .maxSampledTexturesPerShaderStage{         require_limit("maxSampledTexturesPerShaderStage",          adapter_limits.limits.maxSampledTexturesPerShaderStage,          requested_limits.required.maxSampledTexturesPerShaderStage,          requested_limits.desired.maxSampledTexturesPerShaderStage         )},
+            .maxSamplersPerShaderStage{                require_limit("maxSamplersPerShaderStage",                 adapter_limits.limits.maxSamplersPerShaderStage,                 requested_limits.required.maxSamplersPerShaderStage,                 requested_limits.desired.maxSamplersPerShaderStage                )},
+            .maxStorageBuffersPerShaderStage{          require_limit("maxStorageBuffersPerShaderStage",           adapter_limits.limits.maxStorageBuffersPerShaderStage,           requested_limits.required.maxStorageBuffersPerShaderStage,           requested_limits.desired.maxStorageBuffersPerShaderStage          )},
+            .maxStorageTexturesPerShaderStage{         require_limit("maxStorageTexturesPerShaderStage",          adapter_limits.limits.maxStorageTexturesPerShaderStage,          requested_limits.required.maxStorageTexturesPerShaderStage,          requested_limits.desired.maxStorageTexturesPerShaderStage         )},
+            .maxUniformBuffersPerShaderStage{          require_limit("maxUniformBuffersPerShaderStage",           adapter_limits.limits.maxUniformBuffersPerShaderStage,           requested_limits.required.maxUniformBuffersPerShaderStage,           requested_limits.desired.maxUniformBuffersPerShaderStage          )},
+            .maxUniformBufferBindingSize{              require_limit("maxUniformBufferBindingSize",               adapter_limits.limits.maxUniformBufferBindingSize,               requested_limits.required.maxUniformBufferBindingSize,               requested_limits.desired.maxUniformBufferBindingSize              )},
+            .maxStorageBufferBindingSize{              require_limit("maxStorageBufferBindingSize",               adapter_limits.limits.maxStorageBufferBindingSize,               requested_limits.required.maxStorageBufferBindingSize,               requested_limits.desired.maxStorageBufferBindingSize              )},
+            .minUniformBufferOffsetAlignment{          require_limit("minUniformBufferOffsetAlignment",           adapter_limits.limits.minUniformBufferOffsetAlignment,           requested_limits.required.minUniformBufferOffsetAlignment,           requested_limits.desired.minUniformBufferOffsetAlignment          )},
+            .minStorageBufferOffsetAlignment{          require_limit("minStorageBufferOffsetAlignment",           adapter_limits.limits.minStorageBufferOffsetAlignment,           requested_limits.required.minStorageBufferOffsetAlignment,           requested_limits.desired.minStorageBufferOffsetAlignment          )},
+            .maxVertexBuffers{                         require_limit("maxVertexBuffers",                          adapter_limits.limits.maxVertexBuffers,                          requested_limits.required.maxVertexBuffers,                          requested_limits.desired.maxVertexBuffers                         )},
+            .maxBufferSize{                            require_limit("maxBufferSize",                             adapter_limits.limits.maxBufferSize,                             requested_limits.required.maxBufferSize,                             requested_limits.desired.maxBufferSize                            )},
+            .maxVertexAttributes{                      require_limit("maxVertexAttributes",                       adapter_limits.limits.maxVertexAttributes,                       requested_limits.required.maxVertexAttributes,                       requested_limits.desired.maxVertexAttributes                      )},
+            .maxVertexBufferArrayStride{               require_limit("maxVertexBufferArrayStride",                adapter_limits.limits.maxVertexBufferArrayStride,                requested_limits.required.maxVertexBufferArrayStride,                requested_limits.desired.maxVertexBufferArrayStride               )},
+            .maxInterStageShaderComponents{            require_limit("maxInterStageShaderComponents",             adapter_limits.limits.maxInterStageShaderComponents,             requested_limits.required.maxInterStageShaderComponents,             requested_limits.desired.maxInterStageShaderComponents            )},
+            .maxInterStageShaderVariables{             require_limit("maxInterStageShaderVariables",              adapter_limits.limits.maxInterStageShaderVariables,              requested_limits.required.maxInterStageShaderVariables,              requested_limits.desired.maxInterStageShaderVariables             )},
+            .maxColorAttachments{                      require_limit("maxColorAttachments",                       adapter_limits.limits.maxColorAttachments,                       requested_limits.required.maxColorAttachments,                       requested_limits.desired.maxColorAttachments                      )},
+            .maxColorAttachmentBytesPerSample{         require_limit("maxColorAttachmentBytesPerSample",          adapter_limits.limits.maxColorAttachmentBytesPerSample,          requested_limits.required.maxColorAttachmentBytesPerSample,          requested_limits.desired.maxColorAttachmentBytesPerSample         )},
+            .maxComputeWorkgroupStorageSize{           require_limit("maxComputeWorkgroupStorageSize",            adapter_limits.limits.maxComputeWorkgroupStorageSize,            requested_limits.required.maxComputeWorkgroupStorageSize,            requested_limits.desired.maxComputeWorkgroupStorageSize           )},
+            .maxComputeInvocationsPerWorkgroup{        require_limit("maxComputeInvocationsPerWorkgroup",         adapter_limits.limits.maxComputeInvocationsPerWorkgroup,         requested_limits.required.maxComputeInvocationsPerWorkgroup,         requested_limits.desired.maxComputeInvocationsPerWorkgroup        )},
+            .maxComputeWorkgroupSizeX{                 require_limit("maxComputeWorkgroupSizeX",                  adapter_limits.limits.maxComputeWorkgroupSizeX,                  requested_limits.required.maxComputeWorkgroupSizeX,                  requested_limits.desired.maxComputeWorkgroupSizeX                 )},
+            .maxComputeWorkgroupSizeY{                 require_limit("maxComputeWorkgroupSizeY",                  adapter_limits.limits.maxComputeWorkgroupSizeY,                  requested_limits.required.maxComputeWorkgroupSizeY,                  requested_limits.desired.maxComputeWorkgroupSizeY                 )},
+            .maxComputeWorkgroupSizeZ{                 require_limit("maxComputeWorkgroupSizeZ",                  adapter_limits.limits.maxComputeWorkgroupSizeZ,                  requested_limits.required.maxComputeWorkgroupSizeZ,                  requested_limits.desired.maxComputeWorkgroupSizeZ                 )},
+            .maxComputeWorkgroupsPerDimension{         require_limit("maxComputeWorkgroupsPerDimension",          adapter_limits.limits.maxComputeWorkgroupsPerDimension,          requested_limits.required.maxComputeWorkgroupsPerDimension,          requested_limits.desired.maxComputeWorkgroupsPerDimension         )},
+          },
+        };
+
         // request a device
         wgpu::DeviceDescriptor device_descriptor{
           .requiredFeatureCount{required_features_arr.size()},
           .requiredFeatures{required_features_arr.data()},
+          .requiredLimits{&required_limits},
           .defaultQueue{
             .label{"Default queue"},
           },
-          // TODO: specify requiredLimits (use a required and desired limits mechanism again)
           .deviceLostCallback{[](WGPUDeviceLostReason reason_c, char const *message, void *data){
             /// Device lost callback
             auto &game{*static_cast<game_manager*>(data)};
