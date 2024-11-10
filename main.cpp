@@ -358,7 +358,7 @@ void game_manager::run() {
         }};
 
         wgpu::RequiredLimits const required_limits{
-          .limits{
+          .limits{                                                              // see https://www.w3.org/TR/webgpu/#limit-default
             #define REQUIRE_LIMIT(limit) .limit{require_limit("limit", adapter_limits.limits.limit, requested_limits.required.limit, requested_limits.desired.limit)}
             REQUIRE_LIMIT(maxTextureDimension1D),
             REQUIRE_LIMIT(maxTextureDimension2D),
@@ -378,6 +378,9 @@ void game_manager::run() {
             REQUIRE_LIMIT(maxStorageBufferBindingSize),
             REQUIRE_LIMIT(minUniformBufferOffsetAlignment),
             REQUIRE_LIMIT(minStorageBufferOffsetAlignment),
+            // special treatment for minimum rather than maximum limits may be required, see notes for "alignment" at https://www.w3.org/TR/webgpu/#limit-default:
+            //.minUniformBufferOffsetAlignment{adapter_limits.limits.minUniformBufferOffsetAlignment},
+            //.minStorageBufferOffsetAlignment{adapter_limits.limits.minStorageBufferOffsetAlignment},
             REQUIRE_LIMIT(maxVertexBuffers),
             REQUIRE_LIMIT(maxBufferSize),
             REQUIRE_LIMIT(maxVertexAttributes),
@@ -557,6 +560,16 @@ void game_manager::loop_wait_init() {
       .format{webgpu.surface_preferred_format},
       .blend{&blend_state},
     };
+	  wgpu::VertexAttribute position_attrib{
+      .format{wgpu::VertexFormat::Float32x2},
+      .offset{0},
+      .shaderLocation{0},
+    };
+    wgpu::VertexBufferLayout vertex_buffer_layout{
+      .arrayStride{2 * sizeof(float)},
+      .attributeCount{1},
+      .attributes{&position_attrib},
+    };
     wgpu::FragmentState fragment_state{
       .module{shader_module},
       .entryPoint{"fs_main"},
@@ -572,8 +585,8 @@ void game_manager::loop_wait_init() {
         .entryPoint{"vs_main"},
         .constantCount{0},
         .constants{nullptr},
-        .bufferCount{0},
-        .buffers{nullptr},
+        .bufferCount{1},
+        .buffers{&vertex_buffer_layout},
       },
       .primitive{
         // TODO: cullmode front etc
@@ -647,7 +660,35 @@ void game_manager::loop_main() {
 
       render_pass_encoder.SetPipeline(webgpu.pipeline);                         // select which render pipeline to use
 
-      render_pass_encoder.Draw(3, 1, 0, 0);                                     // vertexCount, instanceCount, firstVertex, firstInstance
+      // set up test buffers
+      std::vector<float> vertex_data{
+        // x0, y0
+        -0.5, -0.5,
+
+        // x1, y1
+        +0.5, -0.5,
+
+        // x2, y2
+        +0.0, +0.5
+      };
+      auto vertex_count{static_cast<uint32_t>(vertex_data.size() / 2)};
+      // TODO: create a vertex type or adapt Armchair Engine v1's type
+
+      wgpu::BufferDescriptor buffer_descriptor{
+        .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Vertex},
+        .size{vertex_data.size() * sizeof(float)},
+        .mappedAtCreation{false},
+      };
+      wgpu::Buffer buffer{webgpu.device.CreateBuffer(&buffer_descriptor)};
+      webgpu.queue.WriteBuffer(
+        buffer,                                                                   // buffer
+        0,                                                                        // offset
+        vertex_data.data(),                                                       // data
+        buffer_descriptor.size                                                    // size
+      );
+
+      render_pass_encoder.SetVertexBuffer(0, buffer, 0, buffer.GetSize());
+      render_pass_encoder.Draw(vertex_count, 1, 0, 0);                          // vertexCount, instanceCount, firstVertex, firstInstance
 
       // TODO: add timestamp query: https://eliemichel.github.io/LearnWebGPU/advanced-techniques/benchmarking/time.html
       render_pass_encoder.End();
