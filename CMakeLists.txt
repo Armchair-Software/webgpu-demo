@@ -197,6 +197,7 @@ target_compile_options(client PRIVATE
   -Wuninitialized
   -Wunused
   -Wzero-as-null-pointer-constant
+  -Wno-braced-scalar-init  # suppression for clang bug https://github.com/llvm/llvm-project/issues/57286
 )
 # suppress warnings for external libraries built as part of include
 file(GLOB_RECURSE include_files include/*)
