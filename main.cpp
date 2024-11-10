@@ -7,8 +7,6 @@
 #include <emscripten/threading.h>
 #include <emscripten/val.h>
 #include <GLFW/glfw3.h>
-//#define WEBGPU_CPP_IMPLEMENTATION
-//#include <webgpu.hpp>
 #include <webgpu/webgpu_cpp.h>
 #include <magic_enum/magic_enum.hpp>
 #include "logstorm/logstorm.h"
