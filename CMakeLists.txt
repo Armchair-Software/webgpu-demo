@@ -184,7 +184,7 @@ target_compile_options(client PRIVATE
   -Wold-style-cast
   -Woverloaded-virtual
   -Wpacked
-  #-Wpadded
+  #-Wpadded # useful to turn on occasionally until split - see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52981 and https://bugs.llvm.org/show_bug.cgi?id=22442
   -Wpointer-arith
   -Wrange-loop-analysis
   -Wredundant-decls
