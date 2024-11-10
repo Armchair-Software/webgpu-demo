@@ -13,6 +13,7 @@
 #include <magic_enum/magic_enum.hpp>
 #include "logstorm/logstorm.h"
 #include "vectorstorm/vector/vector2.h"
+#include "render/shaders/default.wgsl.h"
 
 #ifdef BOOST_NO_EXCEPTIONS
 void boost::throw_exception(std::exception const & e) {
@@ -22,27 +23,6 @@ void boost::throw_exception(std::exception const & e) {
   std::unreachable();
 }
 #endif // BOOST_NO_EXCEPTIONS
-
-const char* shader_source = R"(
-@vertex
-fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4f {
-    var p = vec2f(0.0, 0.0);
-    if (in_vertex_index == 0u) {
-        p = vec2f(-0.5, -0.5);
-    } else if (in_vertex_index == 1u) {
-        p = vec2f(0.5, -0.5);
-    } else {
-        p = vec2f(0.0, 0.5);
-    }
-    return vec4f(p, 0.0, 1.0);
-}
-
-@fragment
-fn fs_main() -> @location(0) vec4f {
-    return vec4f(1.0, 1.0, 0.0, 1.0);
-}
-)";
-
 
 class game_manager {
   logstorm::manager logger{logstorm::manager::build_with_sink<logstorm::sink::console>()}; // logging system
@@ -468,7 +448,7 @@ void game_manager::loop_wait_init() {
   logger << "WebGPU assembling shaders";
   {
     wgpu::ShaderModuleWGSLDescriptor shader_module_wgsl_decriptor;
-    shader_module_wgsl_decriptor.code = shader_source;
+    shader_module_wgsl_decriptor.code = render::shaders::default_wgsl;
     wgpu::ShaderModuleDescriptor shader_module_descriptor{
       .nextInChain{&shader_module_wgsl_decriptor},
       .label{"Shader module 1"},

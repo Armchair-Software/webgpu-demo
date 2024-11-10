@@ -1,7 +1,7 @@
 #!/bin/bash
 
 compiled_resources=(
-  render/shaders/*.glsl
+  render/shaders/*.wgsl
 )
 
 # redirect all stdout to stderr
