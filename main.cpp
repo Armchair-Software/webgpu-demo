@@ -156,15 +156,8 @@ void game_manager::run() {
     logger << "render::window: ERROR: GLFW window creation failed!  Cannot continue.";
     throw std::runtime_error{"Could not create a GLFW window"};
   }
-  // TODO: is this needed?
-  //glfwMakeContextCurrent(glfw_window);
 
   glfwSetWindowUserPointer(window.glfw_window, this);                           // set callback userdata
-
-
-
-
-
 
   {
     // create a WebGPU instance
@@ -174,10 +167,7 @@ void game_manager::run() {
     // create a surface
     {
       wgpu::SurfaceDescriptorFromCanvasHTMLSelector surface_descriptor_from_canvas;
-      surface_descriptor_from_canvas.sType = wgpu::SType::SurfaceDescriptorFromCanvasHTMLSelector;
-      // TODO: already set by default, remove the above?
       surface_descriptor_from_canvas.selector = "#canvas";
-      //surface_descriptor_from_canvas.selector = "canvas";
 
       wgpu::SurfaceDescriptor surface_descriptor{
         .nextInChain = &surface_descriptor_from_canvas,
@@ -186,9 +176,6 @@ void game_manager::run() {
       webgpu.surface = instance.CreateSurface(&surface_descriptor);
     }
     if(!webgpu.surface) throw std::runtime_error{"Could not create WebGPU surface"};
-
-    // TODO: swap chain as commented code above
-
 
     // request an adapter
     wgpu::RequestAdapterOptions adapter_request_options{
@@ -315,33 +302,15 @@ void game_manager::run() {
         }
 
         std::set<wgpu::FeatureName> required_features{
-          //wgpu::FeatureName::DepthClipControl,
           wgpu::FeatureName::Depth32FloatStencil8,
           #ifndef NDEBUG
             wgpu::FeatureName::TimestampQuery,
           #endif // NDEBUG
           wgpu::FeatureName::TextureCompressionBC,
-          //wgpu::FeatureName::TextureCompressionETC2,
-          //wgpu::FeatureName::TextureCompressionASTC,
           wgpu::FeatureName::IndirectFirstInstance,
-          //wgpu::FeatureName::ShaderF16,
-          //wgpu::FeatureName::RG11B10UfloatRenderable,
-          //wgpu::FeatureName::BGRA8UnormStorage,
-          //wgpu::FeatureName::Float32Filterable,
         };
         std::set<wgpu::FeatureName> desired_features{
-          //wgpu::FeatureName::DepthClipControl,
-          //wgpu::FeatureName::Depth32FloatStencil8,
-          #ifndef NDEBUG
-            //wgpu::FeatureName::TimestampQuery,
-          #endif // NDEBUG
-          //wgpu::FeatureName::TextureCompressionBC,
-          //wgpu::FeatureName::TextureCompressionETC2,
-          //wgpu::FeatureName::TextureCompressionASTC,
-          //wgpu::FeatureName::IndirectFirstInstance,
           wgpu::FeatureName::ShaderF16,
-          //wgpu::FeatureName::RG11B10UfloatRenderable,
-          //wgpu::FeatureName::BGRA8UnormStorage,
           wgpu::FeatureName::Float32Filterable,
         };
 
@@ -367,8 +336,9 @@ void game_manager::run() {
         wgpu::DeviceDescriptor device_descriptor{
           .requiredFeatureCount = required_features_arr.size(),
           .requiredFeatures = required_features_arr.data(),
-          .defaultQueue = {},
-          // TODO: defaultQueue label
+          .defaultQueue{
+            .label = "Default queue",
+          },
           // TODO: specify requiredLimits (use a required and desired limits mechanism again)
           .deviceLostCallback = [](WGPUDeviceLostReason reason_c, char const *message, void *data){
             /// Device lost callback
@@ -462,10 +432,6 @@ void game_manager::run() {
     );
   }
 
-  // Possible alternative:
-  //#include <emscripten/html5_webgpu.h>
-  //wgpu::Device device{wgpu::Device::Acquire(emscripten_webgpu_get_device())};
-
   logger << "Entering WebGPU init loop";
   emscripten_set_main_loop_arg([](void *data){
     /// Dispatch the loop waiting for WebGPU to become ready
@@ -502,8 +468,6 @@ void game_manager::loop_wait_init() {
   logger << "WebGPU assembling shaders";
   {
     wgpu::ShaderModuleWGSLDescriptor shader_module_wgsl_decriptor;
-    shader_module_wgsl_decriptor.sType = wgpu::SType::ShaderModuleWGSLDescriptor;
-    // TODO: the above shouldn't be needed
     shader_module_wgsl_decriptor.code = shader_source;
     wgpu::ShaderModuleDescriptor shader_module_descriptor{
       .nextInChain = &shader_module_wgsl_decriptor,
