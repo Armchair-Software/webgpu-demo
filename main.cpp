@@ -560,13 +560,13 @@ void game_manager::loop_wait_init() {
       .format{webgpu.surface_preferred_format},
       .blend{&blend_state},
     };
-	  wgpu::VertexAttribute position_attrib{
+    wgpu::VertexAttribute position_attrib{
       .format{wgpu::VertexFormat::Float32x2},
       .offset{0},
       .shaderLocation{0},
     };
     wgpu::VertexBufferLayout vertex_buffer_layout{
-      .arrayStride{2 * sizeof(float)},
+      .arrayStride{sizeof(vec2f)},
       .attributeCount{1},
       .attributes{&position_attrib},
     };
@@ -661,34 +661,29 @@ void game_manager::loop_main() {
       render_pass_encoder.SetPipeline(webgpu.pipeline);                         // select which render pipeline to use
 
       // set up test buffers
-      std::vector<float> vertex_data{
-        // x0, y0
-        -0.5, -0.5,
-
-        // x1, y1
-        +0.5, -0.5,
-
-        // x2, y2
-        +0.0, +0.5
+      std::vector<vec2f> vertex_data{
+        {-0.5f, -0.5f},
+        {+0.5f, -0.5f},
+        {+0.0f, +0.5f},
+        {-0.55f, -0.5f},
+        {-0.05f, +0.5f},
+        {-0.55f, +0.5f},
       };
-      auto vertex_count{static_cast<uint32_t>(vertex_data.size() / 2)};
-      // TODO: create a vertex type or adapt Armchair Engine v1's type
-
       wgpu::BufferDescriptor buffer_descriptor{
         .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Vertex},
-        .size{vertex_data.size() * sizeof(float)},
+        .size{vertex_data.size() * sizeof(vec2f)},
         .mappedAtCreation{false},
       };
       wgpu::Buffer buffer{webgpu.device.CreateBuffer(&buffer_descriptor)};
       webgpu.queue.WriteBuffer(
-        buffer,                                                                   // buffer
-        0,                                                                        // offset
-        vertex_data.data(),                                                       // data
-        buffer_descriptor.size                                                    // size
+        buffer,                                                                 // buffer
+        0,                                                                      // offset
+        vertex_data.data(),                                                     // data
+        vertex_data.size() * sizeof(vec2f)                                      // size
       );
 
       render_pass_encoder.SetVertexBuffer(0, buffer, 0, buffer.GetSize());
-      render_pass_encoder.Draw(vertex_count, 1, 0, 0);                          // vertexCount, instanceCount, firstVertex, firstInstance
+      render_pass_encoder.Draw(vertex_data.size(), 1, 0, 0);                    // vertexCount, instanceCount, firstVertex, firstInstance
 
       // TODO: add timestamp query: https://eliemichel.github.io/LearnWebGPU/advanced-techniques/benchmarking/time.html
       render_pass_encoder.End();
