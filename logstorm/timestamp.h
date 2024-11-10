@@ -8,7 +8,7 @@
 namespace logstorm {
 
 class timestamp {
-  std::chrono::time_point<std::chrono::system_clock> time_start = std::chrono::system_clock::now();
+  std::chrono::time_point<std::chrono::system_clock> time_start{std::chrono::system_clock::now()};
 public:
   enum class types {
     NONE,
@@ -18,13 +18,13 @@ public:
     UNIX,
     SINCE_START,
     DEFAULT = NONE
-  } type = types::DEFAULT;
+  } type{types::DEFAULT};
 
   std::string operator()() {
     /// Generate a timestamp as appropriate to this timestamp's type
     switch(type) {
     case types::NONE:
-      return "";
+      return {};
     case types::TIME:
       {
         std::time_t time = std::time(nullptr);
@@ -61,7 +61,7 @@ public:
         return ss.str();
       }
     }
-    return {};                                                                  // not actually reachable
+    throw std::runtime_error("LogStorm: Invalid timestamp type " + std::to_string(static_cast<unsigned int>(type)));
   }
 
   explicit timestamp(types this_type = types::NONE);
