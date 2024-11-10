@@ -170,8 +170,8 @@ void game_manager::run() {
       surface_descriptor_from_canvas.selector = "#canvas";
 
       wgpu::SurfaceDescriptor surface_descriptor{
-        .nextInChain = &surface_descriptor_from_canvas,
-        .label = "Canvas surface",
+        .nextInChain{&surface_descriptor_from_canvas},
+        .label{"Canvas surface"},
       };
       webgpu.surface = instance.CreateSurface(&surface_descriptor);
     }
@@ -179,8 +179,8 @@ void game_manager::run() {
 
     // request an adapter
     wgpu::RequestAdapterOptions adapter_request_options{
-      .compatibleSurface = webgpu.surface,
-      .powerPreference = wgpu::PowerPreference::HighPerformance,
+      .compatibleSurface{webgpu.surface},
+      .powerPreference{wgpu::PowerPreference::HighPerformance},
     };
 
     instance.RequestAdapter(
@@ -334,19 +334,19 @@ void game_manager::run() {
 
         // request a device
         wgpu::DeviceDescriptor device_descriptor{
-          .requiredFeatureCount = required_features_arr.size(),
-          .requiredFeatures = required_features_arr.data(),
+          .requiredFeatureCount{required_features_arr.size()},
+          .requiredFeatures{required_features_arr.data()},
           .defaultQueue{
-            .label = "Default queue",
+            .label{"Default queue"},
           },
           // TODO: specify requiredLimits (use a required and desired limits mechanism again)
-          .deviceLostCallback = [](WGPUDeviceLostReason reason_c, char const *message, void *data){
+          .deviceLostCallback{[](WGPUDeviceLostReason reason_c, char const *message, void *data){
             /// Device lost callback
             auto &game{*static_cast<game_manager*>(data)};
             auto &logger{game.logger};
             logger << "ERROR: WebGPU lost device, reason " << enum_wgpu_name<wgpu::DeviceLostReason>(reason_c) << ": " << message;
-          },
-          .deviceLostUserdata = &game,
+          }},
+          .deviceLostUserdata{&game},
         };
 
         adapter.RequestDevice(
@@ -453,11 +453,11 @@ void game_manager::loop_wait_init() {
   // configure the surface
   {
     wgpu::SurfaceConfiguration surface_configuration{
-      .device = webgpu.device,
-      .format = webgpu.surface_preferred_format,
-      .viewFormats = nullptr,
-      .width  = static_cast<uint32_t>(window.canvas_size.x),
-      .height = static_cast<uint32_t>(window.canvas_size.y),
+      .device{webgpu.device},
+      .format{webgpu.surface_preferred_format},
+      .viewFormats{nullptr},
+      .width {static_cast<uint32_t>(window.canvas_size.x)},
+      .height{static_cast<uint32_t>(window.canvas_size.y)},
     };
     webgpu.surface.Configure(&surface_configuration);
   }
@@ -470,46 +470,46 @@ void game_manager::loop_wait_init() {
     wgpu::ShaderModuleWGSLDescriptor shader_module_wgsl_decriptor;
     shader_module_wgsl_decriptor.code = shader_source;
     wgpu::ShaderModuleDescriptor shader_module_descriptor{
-      .nextInChain = &shader_module_wgsl_decriptor,
-      .label = "Shader module 1",
+      .nextInChain{&shader_module_wgsl_decriptor},
+      .label{"Shader module 1"},
     };
     wgpu::ShaderModule shader_module{webgpu.device.CreateShaderModule(&shader_module_descriptor)};
 
     logger << "WebGPU configuring pipeline";
     wgpu::BlendState blend_state{
       .color{
-        .operation = wgpu::BlendOperation::Add,                                 // initial values from https://eliemichel.github.io/LearnWebGPU/basic-3d-rendering/hello-triangle.html
-        .srcFactor = wgpu::BlendFactor::SrcAlpha,
-        .dstFactor = wgpu::BlendFactor::OneMinusSrcAlpha,
+        .operation{wgpu::BlendOperation::Add},                                  // initial values from https://eliemichel.github.io/LearnWebGPU/basic-3d-rendering/hello-triangle.html
+        .srcFactor{wgpu::BlendFactor::SrcAlpha},
+        .dstFactor{wgpu::BlendFactor::OneMinusSrcAlpha},
       },
       .alpha{
-        .operation = wgpu::BlendOperation::Add,                                 // these differ from defaults
-        .srcFactor = wgpu::BlendFactor::Zero,
-        .dstFactor = wgpu::BlendFactor::One,
+        .operation{wgpu::BlendOperation::Add},                                  // these differ from defaults
+        .srcFactor{wgpu::BlendFactor::Zero},
+        .dstFactor{wgpu::BlendFactor::One},
         // TODO: compare with defaults
       },
     };
     wgpu::ColorTargetState colour_target_state{
-      .format = webgpu.surface_preferred_format,
-      .blend = &blend_state,
+      .format{webgpu.surface_preferred_format},
+      .blend{&blend_state},
     };
     wgpu::FragmentState fragment_state{
-      .module = shader_module,
-      .entryPoint = "fs_main",
-      .constantCount = 0,
-      .constants = nullptr,
-      .targetCount = 1,
-      .targets = &colour_target_state,
+      .module{shader_module},
+      .entryPoint{"fs_main"},
+      .constantCount{0},
+      .constants{nullptr},
+      .targetCount{1},
+      .targets{&colour_target_state},
     };
     wgpu::RenderPipelineDescriptor render_pipeline_descriptor{
-      .label = "Render pipeline 1",
+      .label{"Render pipeline 1"},
       .vertex{
-        .module = shader_module,
-        .entryPoint = "vs_main",
-        .constantCount = 0,
-        .constants = nullptr,
-        .bufferCount = 0,
-        .buffers = nullptr,
+        .module{shader_module},
+        .entryPoint{"vs_main"},
+        .constantCount{0},
+        .constants{nullptr},
+        .bufferCount{0},
+        .buffers{nullptr},
       },
       .primitive{
         // TODO: cullmode front etc
@@ -517,7 +517,7 @@ void game_manager::loop_wait_init() {
       // TODO:
       //optional .depthStencil =
       .multisample{},
-      .fragment = &fragment_state,
+      .fragment{&fragment_state},
     };
     webgpu.pipeline = webgpu.device.CreateRenderPipeline(&render_pipeline_descriptor);
   }
@@ -551,11 +551,11 @@ void game_manager::loop_main() {
 
     // get a texture view of the surface texture
     wgpu::TextureViewDescriptor texture_view_descriptor{
-      .label = "Surface texture view",
-      .format = surface_texture.texture.GetFormat(),
-      .dimension = wgpu::TextureViewDimension::e2D,
-      .mipLevelCount = 1,
-      .arrayLayerCount = 1,
+      .label{"Surface texture view"},
+      .format{surface_texture.texture.GetFormat()},
+      .dimension{wgpu::TextureViewDimension::e2D},
+      .mipLevelCount{1},
+      .arrayLayerCount{1},
     };
     return surface_texture.texture.CreateView(&texture_view_descriptor);
   }()};
@@ -568,16 +568,16 @@ void game_manager::loop_main() {
 
     {
       wgpu::RenderPassColorAttachment render_pass_colour_attachment{
-        .view = texture_view,
-        .loadOp = wgpu::LoadOp::Clear,
-        .storeOp = wgpu::StoreOp::Store,
-        .clearValue = wgpu::Color{0, 0.5, 0.5, 1.0},
+        .view{texture_view},
+        .loadOp{wgpu::LoadOp::Clear},
+        .storeOp{wgpu::StoreOp::Store},
+        .clearValue{wgpu::Color{0, 0.5, 0.5, 1.0}},
       };
 
       wgpu::RenderPassDescriptor render_pass_descriptor{
-        .label = "Render pass 1",
-        .colorAttachmentCount = 1,
-        .colorAttachments = &render_pass_colour_attachment,
+        .label{"Render pass 1"},
+        .colorAttachmentCount{1},
+        .colorAttachments{&render_pass_colour_attachment},
       };
       wgpu::RenderPassEncoder render_pass_encoder{command_encoder.BeginRenderPass(&render_pass_descriptor)};
 
