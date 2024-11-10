@@ -1,5 +1,6 @@
 struct vertex_input {
   @location(0) position: vec2f,
+  @location(1) colour: vec4f,
 };
 
 struct fragment_input {
@@ -12,7 +13,7 @@ alias vertex_output = fragment_input;
 fn vs_main(in: vertex_input) -> vertex_output {
   var out: vertex_output;
   out.position = vec4f(in.position, 0.0, 1.0);
-  out.colour = vec4f(1.0, 1.0, 0.0, 1.0);
+  out.colour = in.colour;
   return out;
 }
 

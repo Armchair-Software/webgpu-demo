@@ -11,6 +11,7 @@
 #include <magic_enum/magic_enum.hpp>
 #include "logstorm/logstorm.h"
 #include "vectorstorm/vector/vector2.h"
+#include "vectorstorm/vector/vector4.h"
 #include "render/shaders/default.wgsl.h"
 
 #ifdef BOOST_NO_EXCEPTIONS
@@ -21,6 +22,12 @@ void boost::throw_exception(std::exception const & e) {
   std::unreachable();
 }
 #endif // BOOST_NO_EXCEPTIONS
+
+struct vertex {
+  vec2f position;
+  vec4f colour;
+};
+static_assert(sizeof(vertex) == sizeof(vec2f) + sizeof(vec4f));                 // make sure the struct is packed
 
 class game_manager {
   logstorm::manager logger{logstorm::manager::build_with_sink<logstorm::sink::console>()}; // logging system
@@ -543,6 +550,25 @@ void game_manager::loop_wait_init() {
     wgpu::ShaderModule shader_module{webgpu.device.CreateShaderModule(&shader_module_descriptor)};
 
     logger << "WebGPU configuring pipeline";
+
+    std::vector<wgpu::VertexAttribute> vertex_attributes{
+      {
+        .format{wgpu::VertexFormat::Float32x2},
+        .offset{offsetof(vertex, position)},
+        .shaderLocation{0},
+      },
+      {
+        .format{wgpu::VertexFormat::Float32x4},
+        .offset{offsetof(vertex, colour)},
+        .shaderLocation{1},
+      },
+    };
+    wgpu::VertexBufferLayout vertex_buffer_layout{
+      .arrayStride{sizeof(vertex)},
+      .attributeCount{vertex_attributes.size()},
+      .attributes{vertex_attributes.data()},
+    };
+
     wgpu::BlendState blend_state{
       .color{
         .operation{wgpu::BlendOperation::Add},                                  // initial values from https://eliemichel.github.io/LearnWebGPU/basic-3d-rendering/hello-triangle.html
@@ -560,16 +586,6 @@ void game_manager::loop_wait_init() {
       .format{webgpu.surface_preferred_format},
       .blend{&blend_state},
     };
-    wgpu::VertexAttribute position_attrib{
-      .format{wgpu::VertexFormat::Float32x2},
-      .offset{0},
-      .shaderLocation{0},
-    };
-    wgpu::VertexBufferLayout vertex_buffer_layout{
-      .arrayStride{sizeof(vec2f)},
-      .attributeCount{1},
-      .attributes{&position_attrib},
-    };
     wgpu::FragmentState fragment_state{
       .module{shader_module},
       .entryPoint{"fs_main"},
@@ -578,6 +594,7 @@ void game_manager::loop_wait_init() {
       .targetCount{1},
       .targets{&colour_target_state},
     };
+
     wgpu::RenderPipelineDescriptor render_pipeline_descriptor{
       .label{"Render pipeline 1"},
       .vertex{
@@ -661,17 +678,17 @@ void game_manager::loop_main() {
       render_pass_encoder.SetPipeline(webgpu.pipeline);                         // select which render pipeline to use
 
       // set up test buffers
-      std::vector<vec2f> vertex_data{
-        {-0.5f, -0.5f},
-        {+0.5f, -0.5f},
-        {+0.0f, +0.5f},
-        {-0.55f, -0.5f},
-        {-0.05f, +0.5f},
-        {-0.55f, +0.5f},
+      std::vector<vertex> vertex_data{
+        {{-0.5f,  -0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
+        {{+0.5f,  -0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
+        {{+0.0f,  +0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
+        {{-0.55f, -0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
+        {{-0.05f, +0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
+        {{-0.55f, +0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
       };
       wgpu::BufferDescriptor buffer_descriptor{
         .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Vertex},
-        .size{vertex_data.size() * sizeof(vec2f)},
+        .size{vertex_data.size() * sizeof(vertex_data[0])},
         .mappedAtCreation{false},
       };
       wgpu::Buffer buffer{webgpu.device.CreateBuffer(&buffer_descriptor)};
@@ -679,7 +696,7 @@ void game_manager::loop_main() {
         buffer,                                                                 // buffer
         0,                                                                      // offset
         vertex_data.data(),                                                     // data
-        vertex_data.size() * sizeof(vec2f)                                      // size
+        vertex_data.size() * sizeof(vertex_data[0])                             // size
       );
 
       render_pass_encoder.SetVertexBuffer(0, buffer, 0, buffer.GetSize());
