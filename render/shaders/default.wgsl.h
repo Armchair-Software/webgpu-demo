@@ -1,5 +1,5 @@
 namespace render::shaders {
-inline constexpr char const *default_wgsl{R"0f92c494070773b2(struct vertex_input {
+inline constexpr char const *default_wgsl{R"f09ee615fcb172a5(struct vertex_input {
   @location(0) position: vec3f,
   @location(1) normal: vec3f,
   @location(2) colour: vec4f,
@@ -9,12 +9,7 @@ struct vertex_output {
     @location(0) normal: vec3f,
     @location(1) colour: vec4f,
 };
-const model_view_projection_matrix = mat4x4f(
-  1, 0, 0, 0,
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  0, 0, 0, 1
-);
+@group(0) @binding(0) var<uniform> model_view_projection_matrix: mat4x4f;
 const normal_matrix = mat3x3f(
   1, 0, 0,
   0, 1, 0,
@@ -32,4 +27,4 @@ fn vs_main(in: vertex_input) -> vertex_output {
 fn fs_main(in: vertex_output) -> @location(0) vec4f {
   return in.colour;
 }
-)0f92c494070773b2"};}
+)f09ee615fcb172a5"};}

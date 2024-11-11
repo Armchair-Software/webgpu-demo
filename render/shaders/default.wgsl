@@ -10,13 +10,7 @@ struct vertex_output {
     @location(1) colour: vec4f,
 };
 
-// TODO: accept these as uniforms
-const model_view_projection_matrix = mat4x4f(
-  1, 0, 0, 0,
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  0, 0, 0, 1
-);
+@group(0) @binding(0) var<uniform> model_view_projection_matrix: mat4x4f;
 const normal_matrix = mat3x3f(
   1, 0, 0,
   0, 1, 0,

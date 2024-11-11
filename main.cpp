@@ -34,6 +34,13 @@ static_assert(sizeof(vertex) == sizeof(vertex::position) + sizeof(vertex::normal
 using triangle_index = vec3<uint16_t>;
 static_assert(sizeof(triangle_index) == sizeof(uint16_t) * 3);                  // make sure the vector is packed
 
+struct uniforms {
+  mat4f model_view_projection_matrix;
+};
+// TODO: align to 16 bytes if needed
+
+
+
 class game_manager {
   logstorm::manager logger{logstorm::manager::build_with_sink<logstorm::sink::console>()}; // logging system
 
@@ -42,6 +49,7 @@ class game_manager {
     wgpu::Adapter adapter;                                                      // WebGPU adapter once it has been acquired
     wgpu::Device device;                                                        // WebGPU device once it has been acquired
     wgpu::Queue queue;                                                          // the queue for this device, once it has been acquired
+    wgpu::BindGroupLayout bind_group_layout;                                    // layout for the uniform bind group
     wgpu::RenderPipeline pipeline;                                              // the render pipeline currently in use
 
     wgpu::TextureFormat surface_preferred_format{wgpu::TextureFormat::Undefined}; // preferred texture format for this surface
@@ -325,6 +333,9 @@ void game_manager::run() {
         // specify required limits for the device
         struct limit {
           wgpu::Limits required{
+            .maxBindGroups{1},
+            .maxUniformBuffersPerShaderStage{1},
+            .maxUniformBufferBindingSize{16 * 4},
             .maxVertexBuffers{1},
             .maxBufferSize{6 * 2 * sizeof(float)},
             .maxVertexAttributes{1},
@@ -580,12 +591,12 @@ void game_manager::loop_wait_init() {
     };
 
     wgpu::BlendState blend_state{
-      .color{
+      .color{                                                                   // BlendComponent
         .operation{wgpu::BlendOperation::Add},                                  // initial values from https://eliemichel.github.io/LearnWebGPU/basic-3d-rendering/hello-triangle.html
         .srcFactor{wgpu::BlendFactor::SrcAlpha},
         .dstFactor{wgpu::BlendFactor::OneMinusSrcAlpha},
       },
-      .alpha{
+      .alpha{                                                                   // BlendComponent
         .operation{wgpu::BlendOperation::Add},                                  // these differ from defaults
         .srcFactor{wgpu::BlendFactor::Zero},
         .dstFactor{wgpu::BlendFactor::One},
@@ -605,9 +616,35 @@ void game_manager::loop_wait_init() {
       .targets{&colour_target_state},
     };
 
+    wgpu::BindGroupLayoutEntry binding_layout{
+      .binding{0},                                                              // binding index as used in the @binding attribute in the shader
+      .visibility{wgpu::ShaderStage::Vertex},
+      .buffer{                                                                  // BufferBindingLayout
+        .type{wgpu::BufferBindingType::Uniform},
+        .minBindingSize{sizeof(uniforms)},
+      },
+      .sampler{},                                                               // SamplerBindingLayout
+      .texture{},                                                               // TextureBindingLayout
+      .storageTexture{},                                                        // StorageTextureBindingLayout
+    };
+    wgpu::BindGroupLayoutDescriptor bind_group_layout_descriptor{
+      .label{"Bind group layout 1"},
+      .entryCount{1},
+      .entries{&binding_layout},
+    };
+    webgpu.bind_group_layout = webgpu.device.CreateBindGroupLayout(&bind_group_layout_descriptor);
+
+    wgpu::PipelineLayoutDescriptor pipeline_layout_descriptor{
+      .label{"Pipeline layout 1"},
+      .bindGroupLayoutCount{1},
+      .bindGroupLayouts{&webgpu.bind_group_layout},
+    };
+    wgpu::PipelineLayout pipeline_layout{webgpu.device.CreatePipelineLayout(&pipeline_layout_descriptor)};
+
     wgpu::RenderPipelineDescriptor render_pipeline_descriptor{
       .label{"Render pipeline 1"},
-      .vertex{
+      .layout{std::move(pipeline_layout)},
+      .vertex{                                                                  // VertexState
         .module{shader_module},
         .entryPoint{"vs_main"},
         .constantCount{0},
@@ -615,7 +652,7 @@ void game_manager::loop_wait_init() {
         .bufferCount{1},
         .buffers{&vertex_buffer_layout},
       },
-      .primitive{
+      .primitive{                                                               // PrimitiveState
         // TODO: cullmode front etc
       },
       // TODO:
@@ -698,8 +735,11 @@ void game_manager::loop_main() {
         {0, 1, 2},
         {0, 2, 3},
       };
+      uniforms uniform_data;
 
+      // vertex buffer
       wgpu::BufferDescriptor vertex_buffer_descriptor{
+        .label{"Vertex buffer 1"},
         .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Vertex},
         .size{vertex_data.size() * sizeof(vertex_data[0])},
       };
@@ -711,7 +751,9 @@ void game_manager::loop_main() {
         vertex_data.size() * sizeof(vertex_data[0])                             // size
       );
 
+      // index buffer
       wgpu::BufferDescriptor index_buffer_descriptor{
+        .label{"Index buffer 1"},
         .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Index},
         .size{index_data.size() * sizeof(index_data[0])},
       };
@@ -723,8 +765,38 @@ void game_manager::loop_main() {
         index_data.size() * sizeof(index_data[0])                               // size
       );
 
+      // uniform buffer
+      wgpu::BufferDescriptor uniform_buffer_desecriptor{
+        .label{"Uniform buffer 1"},
+        .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform},
+        .size{sizeof(uniform_data)},
+      };
+      wgpu::Buffer uniform_buffer{webgpu.device.CreateBuffer(&uniform_buffer_desecriptor)};
+      webgpu.queue.WriteBuffer(
+        uniform_buffer,                                                         // buffer
+        0,                                                                      // offset
+        &uniform_data,                                                          // data
+        sizeof(uniform_data)                                                    // size
+      );
+
+      // uniform bind group
+      wgpu::BindGroupEntry bind_group_entry{
+        .binding{0},
+        .buffer{uniform_buffer},
+        .offset{offsetof(uniforms, model_view_projection_matrix)},
+        .size{sizeof(uniforms::model_view_projection_matrix)},
+      };
+      wgpu::BindGroupDescriptor bind_group_descriptor{
+        .label{"Bind group 1"},
+        .layout{webgpu.bind_group_layout},
+        .entryCount{1},                                                         // must correspond to layout
+        .entries{&bind_group_entry},
+      };
+      wgpu::BindGroup bind_group{webgpu.device.CreateBindGroup(&bind_group_descriptor)};
+
       render_pass_encoder.SetVertexBuffer(0, vertex_buffer, 0, vertex_buffer.GetSize()); // slot, buffer, offset, size
       render_pass_encoder.SetIndexBuffer(index_buffer, wgpu::IndexFormat::Uint16, 0, index_buffer.GetSize()); // buffer, format, offset, size
+      render_pass_encoder.SetBindGroup(0, bind_group);                          // groupIndex, group, dynamicOffsetCount = 0, dynamicOffsets = nullptr
       render_pass_encoder.DrawIndexed(index_data.size() * decltype(index_data)::value_type::size()); // indexCount, instanceCount = 1, firstIndex = 0, baseVertex = 0, firstInstance = 0
 
       // TODO: add timestamp query: https://eliemichel.github.io/LearnWebGPU/advanced-techniques/benchmarking/time.html
