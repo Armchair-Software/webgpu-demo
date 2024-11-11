@@ -679,17 +679,20 @@ void game_manager::loop_main() {
 
       // set up test buffers
       std::vector<vertex> vertex_data{
-        {{-0.5f,  -0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
-        {{+0.5f,  -0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
-        {{+0.0f,  +0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
-        {{-0.55f, -0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
-        {{-0.05f, +0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
-        {{-0.55f, +0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
+        {{-0.5, -0.5}, {1.0, 0.0, 0.0, 1.0}},
+        {{+0.5, -0.5}, {0.0, 1.0, 0.0, 1.0}},
+        {{+0.5, +0.5}, {0.0, 0.0, 1.0, 1.0}},
+        {{-0.5, +0.5}, {1.0, 1.0, 0.0, 1.0}},
       };
+      std::vector<uint16_t> index_data{
+        0, 1, 2,
+        0, 2, 3,
+      };
+      // TODO: triangle index struct
+
       wgpu::BufferDescriptor vertex_buffer_descriptor{
         .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Vertex},
         .size{vertex_data.size() * sizeof(vertex_data[0])},
-        .mappedAtCreation{false},
       };
       wgpu::Buffer vertex_buffer{webgpu.device.CreateBuffer(&vertex_buffer_descriptor)};
       webgpu.queue.WriteBuffer(
@@ -699,8 +702,21 @@ void game_manager::loop_main() {
         vertex_data.size() * sizeof(vertex_data[0])                             // size
       );
 
-      render_pass_encoder.SetVertexBuffer(0, vertex_buffer, 0, vertex_buffer.GetSize());
-      render_pass_encoder.Draw(vertex_data.size(), 1, 0, 0);                    // vertexCount, instanceCount, firstVertex, firstInstance
+      wgpu::BufferDescriptor index_buffer_descriptor{
+        .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Index},
+        .size{index_data.size() * sizeof(index_data[0])},
+      };
+      wgpu::Buffer index_buffer{webgpu.device.CreateBuffer(&index_buffer_descriptor)};
+      webgpu.queue.WriteBuffer(
+        index_buffer,                                                           // buffer
+        0,                                                                      // offset
+        index_data.data(),                                                      // data
+        index_data.size() * sizeof(index_data[0])                               // size
+      );
+
+      render_pass_encoder.SetVertexBuffer(0, vertex_buffer, 0, vertex_buffer.GetSize()); // slot, buffer, offset, size
+      render_pass_encoder.SetIndexBuffer(index_buffer, wgpu::IndexFormat::Uint16, 0, index_buffer.GetSize()); // buffer, format, offset, size
+      render_pass_encoder.DrawIndexed(index_data.size());                       // indexCount, instanceCount = 1, firstIndex = 0, baseVertex = 0, firstInstance = 0
 
       // TODO: add timestamp query: https://eliemichel.github.io/LearnWebGPU/advanced-techniques/benchmarking/time.html
       render_pass_encoder.End();
