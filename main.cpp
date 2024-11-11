@@ -41,7 +41,54 @@ struct uniforms {
 };
 // TODO: align to 16 bytes if needed
 
+namespace {
+mat4f make_projection_matrix(vec2f const &viewport_size) {
+  /// Set up a projection matrix based on the FOV and the relevant planes
+  enum class fov_mode_type {                                                    // how we set the field of view
+    horizontal,                                                                 // field of view measures max horizontal angle of view
+    vertical,                                                                   // field of view measures max vertical angle of view
+    diagonal,                                                                   // field of view measures max diagonal angle of view
+  } fov_mode{fov_mode_type::diagonal};
 
+  float fov_angle{110.0f};                                                      // field of view, in degrees
+  float fov_angle_rad{DEG2RAD(fov_angle)};                                      // field of view, in radians - automatically updated from degrees
+  float clip_plane_near{1.0f};                                                  // near clip plane
+  float clip_plane_far{100'000.0f};                                             // far clip plane
+
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic error "-Wswitch"                                       // enforce exhaustive switch here
+  switch(fov_mode) {
+  #pragma GCC diagnostic pop
+  case fov_mode_type::horizontal:
+    {
+      float const aspect_ratio{viewport_size.y / viewport_size.x};
+      float const right{std::tan(fov_angle_rad * 0.5f) * clip_plane_near};
+      float const top{right * aspect_ratio};
+      //logger << "DEBUG: horizontal aspect_ratio " << aspect_ratio;
+      return mat4f::create_frustum(-right, right, -top, top, clip_plane_near, clip_plane_far);
+    }
+  case fov_mode_type::vertical:
+    {
+      float const aspect_ratio{viewport_size.x / viewport_size.y};
+      float const top{std::tan(fov_angle_rad * 0.5f) * clip_plane_near};
+      float const right{top * aspect_ratio};
+      //logger << "DEBUG: vertical aspect_ratio " << aspect_ratio;
+      return mat4f::create_frustum(-right, right, -top, top, clip_plane_near, clip_plane_far);
+    }
+  case fov_mode_type::diagonal:
+    {
+      float const diagonal{std::tan(fov_angle_rad * 0.5f) * clip_plane_near};
+      float const viewport_diagonal{viewport_size.length()};
+      float const right{diagonal * (viewport_size.x / viewport_diagonal)};
+      float const top{  diagonal * (viewport_size.y / viewport_diagonal)};
+      //logger << "DEBUG: diagonal aspect_ratio " << viewport_size.x / viewport_size.y;
+      return mat4f::create_frustum(-right, right, -top, top, clip_plane_near, clip_plane_far);
+    }
+    // no default case, to enforce exhaustive switch
+  }
+  std::unreachable();
+}
+}
 
 class game_manager {
   logstorm::manager logger{logstorm::manager::build_with_sink<logstorm::sink::console>()}; // logging system
@@ -728,16 +775,35 @@ void game_manager::loop_main() {
 
       // set up test buffers
       std::vector<vertex> vertex_data{
-        {{-0.5, -0.5, 0.0}, {0.0, 0.0, 1.0}, {1.0, 0.0, 0.0, 1.0}},
-        {{+0.5, -0.5, 0.0}, {0.0, 0.0, 1.0}, {0.0, 1.0, 0.0, 1.0}},
-        {{+0.5, +0.5, 0.0}, {0.0, 0.0, 1.0}, {0.0, 0.0, 1.0, 1.0}},
-        {{-0.5, +0.5, 0.0}, {0.0, 0.0, 1.0}, {1.0, 1.0, 0.0, 1.0}},
+        {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+        {{+1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+        {{+1.0f, +1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
+        {{-1.0f, +1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 0.0f, 1.0f}},
+        {{-1.0f, -1.0f, +1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+        {{+1.0f, -1.0f, +1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+        {{+1.0f, +1.0f, +1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
+        {{-1.0f, +1.0f, +1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 0.0f, 1.0f}},
       };
       std::vector<triangle_index> index_data{
-        {0, 1, 2},
-        {0, 2, 3},
+        {0, 1, 2}, {0, 2, 3},                                                   // Front face (z = -1)
+        {4, 6, 5}, {4, 7, 6},                                                   // Back face (z = +1)
+        {0, 3, 7}, {0, 7, 4},                                                   // Left face (x = -1)
+        {1, 5, 6}, {1, 6, 2},                                                   // Right face (x = +1)
+        {3, 2, 6}, {3, 6, 7},                                                   // Top face (y = +1)
+        {0, 4, 5}, {0, 5, 1},                                                   // Bottom face (y = -1)
       };
-      uniforms uniform_data;
+
+      mat4f projection{make_projection_matrix(static_cast<vec2f>(window.canvas_size))};
+      mat4f look_at{mat4f::create_look_at(
+        {0.0f, 2.0f, -5.0f},                                                    // eye pos
+        {0.0f, 0.0f, 0.0f},                                                     // target pos
+        {0.0f, 1.0f, 0.0f}                                                      // up dir
+      )};
+
+      uniforms uniform_data{
+        projection * look_at,
+        {}
+      };
 
       // vertex buffer
       wgpu::BufferDescriptor vertex_buffer_descriptor{
