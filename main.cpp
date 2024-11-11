@@ -26,9 +26,10 @@ void boost::throw_exception(std::exception const & e) {
 
 struct vertex {
   vec3f position;
+  vec3f normal;
   vec4f colour;
 };
-static_assert(sizeof(vertex) == sizeof(vertex::position) + sizeof(vertex::colour)); // make sure the struct is packed
+static_assert(sizeof(vertex) == sizeof(vertex::position) + sizeof(vertex::normal) + sizeof(vertex::colour)); // make sure the struct is packed
 
 using triangle_index = vec3<uint16_t>;
 static_assert(sizeof(triangle_index) == sizeof(uint16_t) * 3);                  // make sure the vector is packed
@@ -557,14 +558,19 @@ void game_manager::loop_wait_init() {
 
     std::vector<wgpu::VertexAttribute> vertex_attributes{
       {
-        .format{wgpu::VertexFormat::Float32x2},
+        .format{wgpu::VertexFormat::Float32x3},
         .offset{offsetof(vertex, position)},
         .shaderLocation{0},
       },
       {
+        .format{wgpu::VertexFormat::Float32x3},
+        .offset{offsetof(vertex, normal)},
+        .shaderLocation{1},
+      },
+      {
         .format{wgpu::VertexFormat::Float32x4},
         .offset{offsetof(vertex, colour)},
-        .shaderLocation{1},
+        .shaderLocation{2},
       },
     };
     wgpu::VertexBufferLayout vertex_buffer_layout{
@@ -683,10 +689,10 @@ void game_manager::loop_main() {
 
       // set up test buffers
       std::vector<vertex> vertex_data{
-        {{-0.5, -0.5, 0.0}, {1.0, 0.0, 0.0, 1.0}},
-        {{+0.5, -0.5, 0.0}, {0.0, 1.0, 0.0, 1.0}},
-        {{+0.5, +0.5, 0.0}, {0.0, 0.0, 1.0, 1.0}},
-        {{-0.5, +0.5, 0.0}, {1.0, 1.0, 0.0, 1.0}},
+        {{-0.5, -0.5, 0.0}, {0.0, 0.0, 1.0}, {1.0, 0.0, 0.0, 1.0}},
+        {{+0.5, -0.5, 0.0}, {0.0, 0.0, 1.0}, {0.0, 1.0, 0.0, 1.0}},
+        {{+0.5, +0.5, 0.0}, {0.0, 0.0, 1.0}, {0.0, 0.0, 1.0, 1.0}},
+        {{-0.5, +0.5, 0.0}, {0.0, 0.0, 1.0}, {1.0, 1.0, 0.0, 1.0}},
       };
       std::vector<triangle_index> index_data{
         {0, 1, 2},
