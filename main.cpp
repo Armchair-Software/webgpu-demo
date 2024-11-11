@@ -11,6 +11,7 @@
 #include <magic_enum/magic_enum.hpp>
 #include "logstorm/logstorm.h"
 #include "vectorstorm/vector/vector2.h"
+#include "vectorstorm/vector/vector3.h"
 #include "vectorstorm/vector/vector4.h"
 #include "render/shaders/default.wgsl.h"
 
@@ -28,6 +29,9 @@ struct vertex {
   vec4f colour;
 };
 static_assert(sizeof(vertex) == sizeof(vec2f) + sizeof(vec4f));                 // make sure the struct is packed
+
+using triangle_index = vec3<uint16_t>;
+static_assert(sizeof(triangle_index) == sizeof(uint16_t) * 3);                  // make sure the vector is packed
 
 class game_manager {
   logstorm::manager logger{logstorm::manager::build_with_sink<logstorm::sink::console>()}; // logging system
@@ -684,11 +688,10 @@ void game_manager::loop_main() {
         {{+0.5, +0.5}, {0.0, 0.0, 1.0, 1.0}},
         {{-0.5, +0.5}, {1.0, 1.0, 0.0, 1.0}},
       };
-      std::vector<uint16_t> index_data{
-        0, 1, 2,
-        0, 2, 3,
+      std::vector<triangle_index> index_data{
+        {0, 1, 2},
+        {0, 2, 3},
       };
-      // TODO: triangle index struct
 
       wgpu::BufferDescriptor vertex_buffer_descriptor{
         .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Vertex},
@@ -716,7 +719,7 @@ void game_manager::loop_main() {
 
       render_pass_encoder.SetVertexBuffer(0, vertex_buffer, 0, vertex_buffer.GetSize()); // slot, buffer, offset, size
       render_pass_encoder.SetIndexBuffer(index_buffer, wgpu::IndexFormat::Uint16, 0, index_buffer.GetSize()); // buffer, format, offset, size
-      render_pass_encoder.DrawIndexed(index_data.size());                       // indexCount, instanceCount = 1, firstIndex = 0, baseVertex = 0, firstInstance = 0
+      render_pass_encoder.DrawIndexed(index_data.size() * decltype(index_data)::value_type::size()); // indexCount, instanceCount = 1, firstIndex = 0, baseVertex = 0, firstInstance = 0
 
       // TODO: add timestamp query: https://eliemichel.github.io/LearnWebGPU/advanced-techniques/benchmarking/time.html
       render_pass_encoder.End();
