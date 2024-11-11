@@ -10,6 +10,7 @@
 #include <webgpu/webgpu_cpp.h>
 #include <magic_enum/magic_enum.hpp>
 #include "logstorm/logstorm.h"
+#include "vectorstorm/matrix/matrix3.h"
 #include "vectorstorm/vector/vector2.h"
 #include "vectorstorm/vector/vector3.h"
 #include "vectorstorm/vector/vector4.h"
@@ -36,6 +37,7 @@ static_assert(sizeof(triangle_index) == sizeof(uint16_t) * 3);                  
 
 struct uniforms {
   mat4f model_view_projection_matrix;
+  mat3fwgpu normal_matrix;
 };
 // TODO: align to 16 bytes if needed
 
@@ -783,8 +785,7 @@ void game_manager::loop_main() {
       wgpu::BindGroupEntry bind_group_entry{
         .binding{0},
         .buffer{uniform_buffer},
-        .offset{offsetof(uniforms, model_view_projection_matrix)},
-        .size{sizeof(uniforms::model_view_projection_matrix)},
+        .size{sizeof(uniforms)},
       };
       wgpu::BindGroupDescriptor bind_group_descriptor{
         .label{"Bind group 1"},
