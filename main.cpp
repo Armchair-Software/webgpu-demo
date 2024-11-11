@@ -686,20 +686,20 @@ void game_manager::loop_main() {
         {{-0.05f, +0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
         {{-0.55f, +0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
       };
-      wgpu::BufferDescriptor buffer_descriptor{
+      wgpu::BufferDescriptor vertex_buffer_descriptor{
         .usage{wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Vertex},
         .size{vertex_data.size() * sizeof(vertex_data[0])},
         .mappedAtCreation{false},
       };
-      wgpu::Buffer buffer{webgpu.device.CreateBuffer(&buffer_descriptor)};
+      wgpu::Buffer vertex_buffer{webgpu.device.CreateBuffer(&vertex_buffer_descriptor)};
       webgpu.queue.WriteBuffer(
-        buffer,                                                                 // buffer
+        vertex_buffer,                                                          // buffer
         0,                                                                      // offset
         vertex_data.data(),                                                     // data
         vertex_data.size() * sizeof(vertex_data[0])                             // size
       );
 
-      render_pass_encoder.SetVertexBuffer(0, buffer, 0, buffer.GetSize());
+      render_pass_encoder.SetVertexBuffer(0, vertex_buffer, 0, vertex_buffer.GetSize());
       render_pass_encoder.Draw(vertex_data.size(), 1, 0, 0);                    // vertexCount, instanceCount, firstVertex, firstInstance
 
       // TODO: add timestamp query: https://eliemichel.github.io/LearnWebGPU/advanced-techniques/benchmarking/time.html
