@@ -25,10 +25,10 @@ void boost::throw_exception(std::exception const & e) {
 #endif // BOOST_NO_EXCEPTIONS
 
 struct vertex {
-  vec2f position;
+  vec3f position;
   vec4f colour;
 };
-static_assert(sizeof(vertex) == sizeof(vec2f) + sizeof(vec4f));                 // make sure the struct is packed
+static_assert(sizeof(vertex) == sizeof(vertex::position) + sizeof(vertex::colour)); // make sure the struct is packed
 
 using triangle_index = vec3<uint16_t>;
 static_assert(sizeof(triangle_index) == sizeof(uint16_t) * 3);                  // make sure the vector is packed
@@ -683,10 +683,10 @@ void game_manager::loop_main() {
 
       // set up test buffers
       std::vector<vertex> vertex_data{
-        {{-0.5, -0.5}, {1.0, 0.0, 0.0, 1.0}},
-        {{+0.5, -0.5}, {0.0, 1.0, 0.0, 1.0}},
-        {{+0.5, +0.5}, {0.0, 0.0, 1.0, 1.0}},
-        {{-0.5, +0.5}, {1.0, 1.0, 0.0, 1.0}},
+        {{-0.5, -0.5, 0.0}, {1.0, 0.0, 0.0, 1.0}},
+        {{+0.5, -0.5, 0.0}, {0.0, 1.0, 0.0, 1.0}},
+        {{+0.5, +0.5, 0.0}, {0.0, 0.0, 1.0, 1.0}},
+        {{-0.5, +0.5, 0.0}, {1.0, 1.0, 0.0, 1.0}},
       };
       std::vector<triangle_index> index_data{
         {0, 1, 2},
