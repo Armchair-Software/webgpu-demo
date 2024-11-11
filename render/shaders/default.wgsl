@@ -11,13 +11,22 @@ struct vertex_output {
 };
 
 // TODO: accept these as uniforms
-const model_view_projection_matrix = mat4x4f(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-const normal_matrix = mat3x3f(1, 1, 1, 1, 1, 1, 1, 1, 1);
+const model_view_projection_matrix = mat4x4f(
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, 0, 1
+);
+const normal_matrix = mat3x3f(
+  1, 0, 0,
+  0, 1, 0,
+  0, 0, 1
+);
 
 @vertex
 fn vs_main(in: vertex_input) -> vertex_output {
   var out: vertex_output;
-  out.position = vec4f(in.position, 1.0);
+  out.position = model_view_projection_matrix * vec4f(in.position, 1.0);
   out.normal = normal_matrix * in.normal;
   out.colour = in.colour;
   return out;
