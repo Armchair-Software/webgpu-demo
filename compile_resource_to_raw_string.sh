@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# the following are file types we strip C-style comments for:
+strip_comment_suffixes=(
+  "wgsl"
+  "glsl"
+)
+
 infile="$1"
 if [ -z "$infile" ]; then
   echo "Usage: $0 <filename> [namespace]" 2>&1
@@ -11,13 +17,16 @@ if [ ! -f "$infile" ]; then
   exit 1
 fi
 
-outfile="$1.h"
+outfile="$infile.h"
 
 # don't update if outfile is newer than infile
 if [ ! "$infile" -nt "$outfile" ]; then
   echo "Resource compiler: $outfile up to date"
   exit
 fi
+
+suffix=${infile##*.} # get the suffix
+suffix=${suffix,,} # make it lowercase
 
 # generate a fairly unique hash to act as a rawstring prefix/suffix
 shorthash=$(md5sum "$infile" | cut -c 1-16)
@@ -37,8 +46,18 @@ if [ ! -z "$namespace" ]; then
   echo "namespace $namespace {" >> "$outfile"
 fi
 
+# header
 echo -n "inline constexpr char const *${resourcename}{R\"${shorthash}(" >> "$outfile"
-cat "$infile" >> "$outfile"
+
+# content
+if printf '%s\0' "${strip_comment_suffixes[@]}" | grep -Fxzq -- "$suffix"; then
+  # strip comments and whitespace-only lines
+  sed "s/\/\/.*//;/^[ ]*$/d" "$infile" >> "$outfile"
+else
+  cat "$infile" >> "$outfile"
+fi
+
+# footer
 echo -n ")${shorthash}\"};" >> "$outfile"
 
 if [ ! -z "$namespace" ]; then
