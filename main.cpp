@@ -101,6 +101,9 @@ class game_manager {
     wgpu::BindGroupLayout bind_group_layout;                                    // layout for the uniform bind group
     wgpu::RenderPipeline pipeline;                                              // the render pipeline currently in use
 
+    wgpu::Texture depth_texture;
+    wgpu::TextureView depth_texture_view;
+
     wgpu::TextureFormat surface_preferred_format{wgpu::TextureFormat::Undefined}; // preferred texture format for this surface
   } webgpu;
 
@@ -382,6 +385,8 @@ void game_manager::run() {
         // specify required limits for the device
         struct limit {
           wgpu::Limits required{
+            .maxTextureDimension2D{3840},
+            .maxTextureArrayLayers{1},
             .maxBindGroups{1},
             .maxUniformBuffersPerShaderStage{1},
             .maxUniformBufferBindingSize{16 * 4},
@@ -390,7 +395,9 @@ void game_manager::run() {
             .maxVertexAttributes{1},
             .maxVertexBufferArrayStride{2 * sizeof(float)},
           };
-          wgpu::Limits desired{};
+          wgpu::Limits desired{
+            .maxTextureDimension2D{8192},
+          };
         } requested_limits;
 
         auto require_limit{[&]<typename T>(std::string const &name, T available, T required, T desired){
@@ -665,6 +672,17 @@ void game_manager::loop_wait_init() {
       .targets{&colour_target_state},
     };
 
+    wgpu::DepthStencilState depth_stencil_state{
+      .format{wgpu::TextureFormat::Depth24Plus},
+      .depthWriteEnabled{true},
+      .depthCompare{wgpu::CompareFunction::Less},
+      .stencilFront{},                                                          // StencilFaceState
+      .stencilBack{},                                                           // StencilFaceState
+      .stencilReadMask{0},
+      .stencilWriteMask{0},
+      // TODO: tweak depth bias settings
+    };
+
     wgpu::BindGroupLayoutEntry binding_layout{
       .binding{0},                                                              // binding index as used in the @binding attribute in the shader
       .visibility{wgpu::ShaderStage::Vertex},
@@ -704,13 +722,39 @@ void game_manager::loop_wait_init() {
       .primitive{                                                               // PrimitiveState
         // TODO: cullmode front etc
       },
-      // TODO:
-      //optional .depthStencil =
+      .depthStencil{&depth_stencil_state},
       .multisample{},
       .fragment{&fragment_state},
     };
     webgpu.pipeline = webgpu.device.CreateRenderPipeline(&render_pipeline_descriptor);
   }
+
+  // create the depth buffer
+  {
+    auto depth_texture_format{wgpu::TextureFormat::Depth24Plus};
+    wgpu::TextureDescriptor depth_texture_descriptor{
+      .label{"Depth texture 1"},
+      .usage{wgpu::TextureUsage::RenderAttachment},
+      .dimension{wgpu::TextureDimension::e2D},
+      .size{static_cast<uint32_t>(window.canvas_size.x), static_cast<uint32_t>(window.canvas_size.y), 1},
+      .format{wgpu::TextureFormat::Depth24Plus},
+      .viewFormatCount{1},
+      .viewFormats{&depth_texture_format},
+    };
+    webgpu.depth_texture = webgpu.device.CreateTexture(&depth_texture_descriptor);
+  }
+  {
+    wgpu::TextureViewDescriptor depth_texture_view_descriptor{
+      .label{"Depth texture view 1"},
+      .format{wgpu::TextureFormat::Depth24Plus},
+      .dimension{wgpu::TextureViewDimension::e2D},
+      .mipLevelCount{1},
+      .arrayLayerCount{1},
+      .aspect{wgpu::TextureAspect::DepthOnly},
+    };
+    webgpu.depth_texture_view = webgpu.depth_texture.CreateView(&depth_texture_view_descriptor);
+  }
+
 
   logger << "Entering main loop";
   emscripten_cancel_main_loop();
@@ -757,6 +801,7 @@ void game_manager::loop_main() {
     wgpu::CommandEncoder command_encoder{webgpu.device.CreateCommandEncoder(&command_encoder_descriptor)};
 
     {
+      // set up render pass
       wgpu::RenderPassColorAttachment render_pass_colour_attachment{
         .view{texture_view},
         .loadOp{wgpu::LoadOp::Clear},
@@ -764,10 +809,17 @@ void game_manager::loop_main() {
         .clearValue{wgpu::Color{0, 0.5, 0.5, 1.0}},
       };
 
+      wgpu::RenderPassDepthStencilAttachment render_pass_depth_stencil_attachment{
+        .view{webgpu.depth_texture_view},
+        .depthLoadOp{wgpu::LoadOp::Clear},
+        .depthStoreOp{wgpu::StoreOp::Store},
+        .depthClearValue{1.0f},
+      };
       wgpu::RenderPassDescriptor render_pass_descriptor{
         .label{"Render pass 1"},
         .colorAttachmentCount{1},
         .colorAttachments{&render_pass_colour_attachment},
+        .depthStencilAttachment{&render_pass_depth_stencil_attachment},
       };
       wgpu::RenderPassEncoder render_pass_encoder{command_encoder.BeginRenderPass(&render_pass_descriptor)};
 
