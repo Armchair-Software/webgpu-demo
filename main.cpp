@@ -827,14 +827,14 @@ void game_manager::loop_main() {
 
       // set up test buffers
       std::vector<vertex> vertex_data{
-        {{-1.0f, -1.0f, -1.0f}, { 0.0f, -1.0f,  0.0f}, { 0.0f,  0.5f,  0.0f, 1.0f}}, // bottom face normal & colour
-        {{+1.0f, -1.0f, -1.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f, 1.0f}}, // right face normal & colour
-        {{+1.0f, +1.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}, { 0.0f,  0.0f,  0.5f, 1.0f}}, // front face normal & colour
-        {{-1.0f, +1.0f, -1.0f}, {-1.0f,  0.0f,  0.0f}, { 0.5f,  0.0f,  0.0f, 1.0f}}, // left face normal & colour
-        {{-1.0f, -1.0f, +1.0f}, { 0.0f,  0.0f,  0.0f}, { 0.0f,  0.0f,  0.0f, 1.0f}}, // normal & colour not used
-        {{+1.0f, -1.0f, +1.0f}, { 0.0f,  0.0f,  0.0f}, { 0.0f,  0.0f,  0.0f, 1.0f}}, // normal & colour not used
-        {{+1.0f, +1.0f, +1.0f}, { 0.0f, +1.0f,  0.0f}, { 0.0f, +1.0f,  0.0f, 1.0f}}, // top face normal & colour
-        {{-1.0f, +1.0f, +1.0f}, { 0.0f,  0.0f, +1.0f}, { 0.0f,  0.0f, +1.0f, 1.0f}}, // back face normal & colour
+        {{-1.0f, -1.0f, -1.0f}, { 0.0f, -1.0f,  0.0f}, {1.0f, 0.75f, 0.0f, 1.0f}}, // bottom face normal & colour
+        {{+1.0f, -1.0f, -1.0f}, {+1.0f,  0.0f,  0.0f}, {1.0f, 0.75f, 0.0f, 1.0f}}, // right face normal & colour
+        {{+1.0f, +1.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}, {1.0f, 0.75f, 0.0f, 1.0f}}, // front face normal & colour
+        {{-1.0f, +1.0f, -1.0f}, {-1.0f,  0.0f,  0.0f}, {1.0f, 0.75f, 0.0f, 1.0f}}, // left face normal & colour
+        {{-1.0f, -1.0f, +1.0f}, { 0.0f,  0.0f,  0.0f}, {1.0f, 0.75f, 0.0f, 1.0f}}, // normal & colour not used
+        {{+1.0f, -1.0f, +1.0f}, { 0.0f,  0.0f,  0.0f}, {1.0f, 0.75f, 0.0f, 1.0f}}, // normal & colour not used
+        {{+1.0f, +1.0f, +1.0f}, { 0.0f, +1.0f,  0.0f}, {1.0f, 0.75f, 0.0f, 1.0f}}, // top face normal & colour
+        {{-1.0f, +1.0f, +1.0f}, { 0.0f,  0.0f, +1.0f}, {1.0f, 0.75f, 0.0f, 1.0f}}, // back face normal & colour
       };
       std::vector<triangle_index> index_data{
         {0, 1, 5}, {0, 5, 4},                                                   // bottom face (y = -1)
@@ -848,8 +848,10 @@ void game_manager::loop_main() {
       // set up matrices
       static float angle{0.0f};
       angle += 0.01f;
+      quatf model_rotation{quatf::from_euler_angles_rad(0.0, angle, 0.0)};
+
       vec3f camera_pos{0.0f, 2.0f, -5.0f};
-      camera_pos.rotate_rad_y(angle);
+      //camera_pos.rotate_rad_y(angle);
 
       mat4f projection{make_projection_matrix(static_cast<vec2f>(window.canvas_size))};
       mat4f look_at{mat4f::create_look_at(
@@ -859,8 +861,8 @@ void game_manager::loop_main() {
       )};
 
       uniforms uniform_data{
-        projection * look_at,
-        {}
+        projection * look_at * model_rotation.transform(),
+        mat3fwgpu{model_rotation.rotmatrix()},
       };
 
       // vertex buffer
