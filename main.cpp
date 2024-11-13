@@ -581,6 +581,24 @@ void game_manager::run() {
     );
   }
 
+
+  emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, false,   // target, userdata, use_capture, callback
+    ([](int /*event_type*/, EmscriptenUiEvent const *event, void *data) {       // event_type == EMSCRIPTEN_EVENT_RESIZE
+      auto &game{*static_cast<game_manager*>(data)};
+      auto &window{game.window};
+      window.document_body_size.x = static_cast<unsigned int>(event->documentBodyClientWidth);
+      window.document_body_size.y = static_cast<unsigned int>(event->documentBodyClientHeight);
+      window.window_inner_size.x  = static_cast<unsigned int>(event->windowInnerWidth);
+      window.window_inner_size.y  = static_cast<unsigned int>(event->windowInnerHeight);
+      window.window_outer_size.x  = static_cast<unsigned int>(event->windowOuterWidth);
+      window.window_outer_size.y  = static_cast<unsigned int>(event->windowOuterHeight);
+
+      window.viewport_size = window.window_inner_size;
+      return true;
+    })
+  );
+
+
   logger << "Entering WebGPU init loop";
   emscripten_set_main_loop_arg([](void *data){
     /// Dispatch the loop waiting for WebGPU to become ready
