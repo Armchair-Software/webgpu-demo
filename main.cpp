@@ -159,6 +159,7 @@ void game_manager::run() {
   /// Launch the game pseudo-loop
   logger << "Starting Armchair WebGPU Demo";
 
+  /**
   // TODO: move this to a window init
   if(glfwInit() != GLFW_TRUE) {                                                 // initialise the opengl window
     logger << "render::window: ERROR: GLFW initialisation failed!  Cannot continue.";
@@ -171,6 +172,7 @@ void game_manager::run() {
   glfwSetErrorCallback(glfw_callback_error.target<void(int, char const*)>());   // pass the target to GLFW to set the callback as a function pointer
 
   logger << "render::window: GLFW monitor name: " << glfwGetMonitorName(nullptr);
+  **/
 
   // find out about the initial canvas size and the current window and doc sizes
   emscripten_get_canvas_element_size("#canvas", &window.canvas_size.x, &window.canvas_size.y);
@@ -193,6 +195,7 @@ void game_manager::run() {
   // TODO: resize callback here (from Project Raindrop)
   // TODO: resize callback should have surface.Configure ... size updates
 
+  /**
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   // TODO: disable no-resize hint when resize callback has been implemented
@@ -208,7 +211,7 @@ void game_manager::run() {
   }
 
   glfwSetWindowUserPointer(window.glfw_window, this);                           // set callback userdata
-
+  **/
   {
     // create a WebGPU instance
     wgpu::Instance instance{wgpu::CreateInstance()};
@@ -769,7 +772,7 @@ void game_manager::loop_wait_init() {
 void game_manager::loop_main() {
   /// Main pseudo-loop
   logger << "Tick...";
-  glfwPollEvents();
+  //glfwPollEvents();
 
   wgpu::TextureView texture_view{[&]{
     /// Return a texture view from the current surface texture
