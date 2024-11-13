@@ -12,7 +12,7 @@ if [ ! -f "$launch_html" ]; then
   ./build.sh
 fi
 
-port=6932
+port=6934
 
 echo "Launching $launch_html with emrun..."
 #emrun --port "$port" "$launch_html" --browser /home/slowriot/usr/firefox-nightly/firefox-bin --browser_args="--new-window"
