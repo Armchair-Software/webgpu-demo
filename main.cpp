@@ -197,11 +197,10 @@ void game_manager::run() {
 
   /**
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   // TODO: disable no-resize hint when resize callback has been implemented
 
-  window.glfw_window = glfwCreateWindow(window.canvas_size.x,                   // use initial canvas size
-                                        window.canvas_size.y,
+  window.glfw_window = glfwCreateWindow(window.viewport_size.x,                 // use initial canvas size
+                                        window.viewport_size.y,
                                         "Armchair WebGPU Demo",                 // window title
                                         nullptr,                                // monitor to use fullscreen, NULL here means run windowed - we always do under emscripten
                                         nullptr);                               // the context to share with, see http://stackoverflow.com/a/17792242/1678468
@@ -229,6 +228,24 @@ void game_manager::run() {
       webgpu.surface = instance.CreateSurface(&surface_descriptor);
     }
     if(!webgpu.surface) throw std::runtime_error{"Could not create WebGPU surface"};
+
+
+    /// wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDesc{};
+    /// canvasDesc.selector = "#canvas";
+    ///
+    /// wgpu::SurfaceDescriptor surfDesc{};
+    /// surfDesc.nextInChain = &canvasDesc;
+    /// wgpu::Surface surface = instance.CreateSurface(&surfDesc);
+    ///
+    /// wgpu::SwapChainDescriptor scDesc{};
+    /// scDesc.usage = wgpu::TextureUsage::RenderAttachment;
+    /// scDesc.format = wgpu::TextureFormat::BGRA8Unorm;
+    /// scDesc.width = kWidth;
+    /// scDesc.height = kHeight;
+    /// scDesc.presentMode = wgpu::PresentMode::Fifo;
+    /// swapChain = device.CreateSwapChain(surface, &scDesc);
+    // TODO: swap chain as commented code above?
+
 
     // request an adapter
     wgpu::RequestAdapterOptions adapter_request_options{
@@ -605,8 +622,8 @@ void game_manager::loop_wait_init() {
       .device{webgpu.device},
       .format{webgpu.surface_preferred_format},
       .viewFormats{nullptr},
-      .width {static_cast<uint32_t>(window.canvas_size.x)},
-      .height{static_cast<uint32_t>(window.canvas_size.y)},
+      .width {static_cast<uint32_t>(window.viewport_size.x)},
+      .height{static_cast<uint32_t>(window.viewport_size.y)},
     };
     webgpu.surface.Configure(&surface_configuration);
   }
@@ -739,7 +756,11 @@ void game_manager::loop_wait_init() {
       .label{"Depth texture 1"},
       .usage{wgpu::TextureUsage::RenderAttachment},
       .dimension{wgpu::TextureDimension::e2D},
-      .size{static_cast<uint32_t>(window.canvas_size.x), static_cast<uint32_t>(window.canvas_size.y), 1},
+      .size{
+        static_cast<uint32_t>(window.viewport_size.x),
+        static_cast<uint32_t>(window.viewport_size.y),
+        1
+      },
       .format{wgpu::TextureFormat::Depth24Plus},
       .viewFormatCount{1},
       .viewFormats{&depth_texture_format},
@@ -856,7 +877,7 @@ void game_manager::loop_main() {
       vec3f camera_pos{0.0f, 2.0f, -5.0f};
       //camera_pos.rotate_rad_y(angle);
 
-      mat4f projection{make_projection_matrix(static_cast<vec2f>(window.canvas_size))};
+      mat4f projection{make_projection_matrix(static_cast<vec2f>(window.viewport_size))};
       mat4f look_at{mat4f::create_look_at(
         camera_pos,                                                             // eye pos
         {0.0f, 0.0f, 0.0f},                                                     // target pos
