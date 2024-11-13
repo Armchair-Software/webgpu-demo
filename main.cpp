@@ -100,6 +100,7 @@ class game_manager {
     wgpu::Queue queue;                                                          // the queue for this device, once it has been acquired
     wgpu::BindGroupLayout bind_group_layout;                                    // layout for the uniform bind group
     wgpu::RenderPipeline pipeline;                                              // the render pipeline currently in use
+    wgpu::SwapChain swapchain;                                                  // the swapchain providing a texture view to render to
 
     wgpu::Texture depth_texture;
     wgpu::TextureView depth_texture_view;
@@ -228,24 +229,6 @@ void game_manager::run() {
       webgpu.surface = instance.CreateSurface(&surface_descriptor);
     }
     if(!webgpu.surface) throw std::runtime_error{"Could not create WebGPU surface"};
-
-
-    /// wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDesc{};
-    /// canvasDesc.selector = "#canvas";
-    ///
-    /// wgpu::SurfaceDescriptor surfDesc{};
-    /// surfDesc.nextInChain = &canvasDesc;
-    /// wgpu::Surface surface = instance.CreateSurface(&surfDesc);
-    ///
-    /// wgpu::SwapChainDescriptor scDesc{};
-    /// scDesc.usage = wgpu::TextureUsage::RenderAttachment;
-    /// scDesc.format = wgpu::TextureFormat::BGRA8Unorm;
-    /// scDesc.width = kWidth;
-    /// scDesc.height = kHeight;
-    /// scDesc.presentMode = wgpu::PresentMode::Fifo;
-    /// swapChain = device.CreateSwapChain(surface, &scDesc);
-    // TODO: swap chain as commented code above?
-
 
     // request an adapter
     wgpu::RequestAdapterOptions adapter_request_options{
@@ -616,7 +599,6 @@ void game_manager::loop_wait_init() {
   }
 
   logger << "WebGPU device ready, configuring surface";
-  // configure the surface
   {
     wgpu::SurfaceConfiguration surface_configuration{
       .device{webgpu.device},
@@ -626,6 +608,19 @@ void game_manager::loop_wait_init() {
       .height{static_cast<uint32_t>(window.viewport_size.y)},
     };
     webgpu.surface.Configure(&surface_configuration);
+  }
+
+  logger << "WebGPU creating swapchain";
+  {
+    wgpu::SwapChainDescriptor swapchain_descriptor{
+      .label{"Swapchain 1"},
+      .usage{wgpu::TextureUsage::RenderAttachment},
+      .format{webgpu.surface_preferred_format},
+      .width{ window.viewport_size.x},
+      .height{window.viewport_size.y},
+      .presentMode{wgpu::PresentMode::Fifo},
+    };
+    webgpu.swapchain = webgpu.device.CreateSwapChain(webgpu.surface, &swapchain_descriptor);
   }
 
   logger << "WebGPU acquiring queue";
@@ -795,28 +790,9 @@ void game_manager::loop_main() {
   logger << "Tick...";
   //glfwPollEvents();
 
-  wgpu::TextureView texture_view{[&]{
-    /// Return a texture view from the current surface texture
-    // get the surface texture for rendering to
-    wgpu::SurfaceTexture surface_texture;
-    webgpu.surface.GetCurrentTexture(&surface_texture);
-    if(surface_texture.status != wgpu::SurfaceGetCurrentTextureStatus::Success) {
-      logger << "ERROR: WebGPU failed to get surface texture: " << magic_enum::enum_name(surface_texture.status);
-    }
-    if(surface_texture.suboptimal) {
-      logger << "WARNING: WebGPU surface texture is suboptimal";
-    }
 
-    // get a texture view of the surface texture
-    wgpu::TextureViewDescriptor texture_view_descriptor{
-      .label{"Surface texture view"},
-      .format{surface_texture.texture.GetFormat()},
-      .dimension{wgpu::TextureViewDimension::e2D},
-      .mipLevelCount{1},
-      .arrayLayerCount{1},
-    };
-    return surface_texture.texture.CreateView(&texture_view_descriptor);
-  }()};
+	wgpu::TextureView texture_view{webgpu.swapchain.GetCurrentTextureView()};
+	if(!texture_view) throw std::runtime_error{"Could not get current texture view from swap chain"};
 
   {
     wgpu::CommandEncoderDescriptor command_encoder_descriptor{
