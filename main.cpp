@@ -585,7 +585,9 @@ void game_manager::run() {
   emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, false,   // target, userdata, use_capture, callback
     ([](int /*event_type*/, EmscriptenUiEvent const *event, void *data) {       // event_type == EMSCRIPTEN_EVENT_RESIZE
       auto &game{*static_cast<game_manager*>(data)};
+      auto &logger{game.logger};
       auto &window{game.window};
+      auto &webgpu{game.webgpu};
       window.document_body_size.x = static_cast<unsigned int>(event->documentBodyClientWidth);
       window.document_body_size.y = static_cast<unsigned int>(event->documentBodyClientHeight);
       window.window_inner_size.x  = static_cast<unsigned int>(event->windowInnerWidth);
@@ -594,10 +596,55 @@ void game_manager::run() {
       window.window_outer_size.y  = static_cast<unsigned int>(event->windowOuterHeight);
 
       window.viewport_size = window.window_inner_size;
+
+
+      // TODO: de-duplicate these
+      logger << "WebGPU creating swapchain";
+      {
+        wgpu::SwapChainDescriptor swapchain_descriptor{
+          .label{"Swapchain 1"},
+          .usage{wgpu::TextureUsage::RenderAttachment},
+          .format{webgpu.surface_preferred_format},
+          .width{ window.viewport_size.x},
+          .height{window.viewport_size.y},
+          .presentMode{wgpu::PresentMode::Fifo},
+        };
+        webgpu.swapchain = webgpu.device.CreateSwapChain(webgpu.surface, &swapchain_descriptor);
+      }
+
+      // create the depth buffer
+      {
+        constexpr auto depth_texture_format{wgpu::TextureFormat::Depth24Plus};
+        wgpu::TextureDescriptor depth_texture_descriptor{
+          .label{"Depth texture 1"},
+          .usage{wgpu::TextureUsage::RenderAttachment},
+          .dimension{wgpu::TextureDimension::e2D},
+          .size{
+            window.viewport_size.x,
+            window.viewport_size.y,
+            1
+          },
+          .format{wgpu::TextureFormat::Depth24Plus},
+          .viewFormatCount{1},
+          .viewFormats{&depth_texture_format},
+        };
+        webgpu.depth_texture = webgpu.device.CreateTexture(&depth_texture_descriptor);
+      }
+      {
+        wgpu::TextureViewDescriptor depth_texture_view_descriptor{
+          .label{"Depth texture view 1"},
+          .format{wgpu::TextureFormat::Depth24Plus},
+          .dimension{wgpu::TextureViewDimension::e2D},
+          .mipLevelCount{1},
+          .arrayLayerCount{1},
+          .aspect{wgpu::TextureAspect::DepthOnly},
+        };
+        webgpu.depth_texture_view = webgpu.depth_texture.CreateView(&depth_texture_view_descriptor);
+      }
+
       return true;
     })
   );
-
 
   logger << "Entering WebGPU init loop";
   emscripten_set_main_loop_arg([](void *data){
@@ -622,8 +669,8 @@ void game_manager::loop_wait_init() {
       .device{webgpu.device},
       .format{webgpu.surface_preferred_format},
       .viewFormats{nullptr},
-      .width {static_cast<uint32_t>(window.viewport_size.x)},
-      .height{static_cast<uint32_t>(window.viewport_size.y)},
+      .width{ window.viewport_size.x},
+      .height{window.viewport_size.y},
     };
     webgpu.surface.Configure(&surface_configuration);
   }
@@ -764,7 +811,7 @@ void game_manager::loop_wait_init() {
 
   // create the depth buffer
   {
-    auto depth_texture_format{wgpu::TextureFormat::Depth24Plus};
+    constexpr auto depth_texture_format{wgpu::TextureFormat::Depth24Plus};
     wgpu::TextureDescriptor depth_texture_descriptor{
       .label{"Depth texture 1"},
       .usage{wgpu::TextureUsage::RenderAttachment},
