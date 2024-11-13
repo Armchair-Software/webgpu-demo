@@ -6,8 +6,8 @@ struct vertex_input {
 
 struct vertex_output {
   @builtin(position) position: vec4f,
-  @location(0) normal: vec3f,
-  @location(1) colour: vec4f,
+  @location(0) @interpolate(flat, first) normal: vec3f,
+  @location(1) @interpolate(flat, first) colour: vec4f,
 };
 
 struct uniform_struct {

@@ -827,22 +827,22 @@ void game_manager::loop_main() {
 
       // set up test buffers
       std::vector<vertex> vertex_data{
-        {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-        {{+1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-        {{+1.0f, +1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
-        {{-1.0f, +1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 0.0f, 1.0f}},
-        {{-1.0f, -1.0f, +1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-        {{+1.0f, -1.0f, +1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-        {{+1.0f, +1.0f, +1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
-        {{-1.0f, +1.0f, +1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 0.0f, 1.0f}},
+        {{-1.0f, -1.0f, -1.0f}, { 0.0f, -1.0f,  0.0f}, { 0.0f,  0.5f,  0.0f, 1.0f}}, // bottom face normal & colour
+        {{+1.0f, -1.0f, -1.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f, 1.0f}}, // right face normal & colour
+        {{+1.0f, +1.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}, { 0.0f,  0.0f,  0.5f, 1.0f}}, // front face normal & colour
+        {{-1.0f, +1.0f, -1.0f}, {-1.0f,  0.0f,  0.0f}, { 0.5f,  0.0f,  0.0f, 1.0f}}, // left face normal & colour
+        {{-1.0f, -1.0f, +1.0f}, { 0.0f,  0.0f,  0.0f}, { 0.0f,  0.0f,  0.0f, 1.0f}}, // normal & colour not used
+        {{+1.0f, -1.0f, +1.0f}, { 0.0f,  0.0f,  0.0f}, { 0.0f,  0.0f,  0.0f, 1.0f}}, // normal & colour not used
+        {{+1.0f, +1.0f, +1.0f}, { 0.0f, +1.0f,  0.0f}, { 0.0f, +1.0f,  0.0f, 1.0f}}, // top face normal & colour
+        {{-1.0f, +1.0f, +1.0f}, { 0.0f,  0.0f, +1.0f}, { 0.0f,  0.0f, +1.0f, 1.0f}}, // back face normal & colour
       };
       std::vector<triangle_index> index_data{
-        {0, 1, 2}, {0, 2, 3},                                                   // Front face (z = -1)
-        {4, 6, 5}, {4, 7, 6},                                                   // Back face (z = +1)
-        {0, 3, 7}, {0, 7, 4},                                                   // Left face (x = -1)
-        {1, 5, 6}, {1, 6, 2},                                                   // Right face (x = +1)
-        {3, 2, 6}, {3, 6, 7},                                                   // Top face (y = +1)
-        {0, 4, 5}, {0, 5, 1},                                                   // Bottom face (y = -1)
+        {0, 1, 5}, {0, 5, 4},                                                   // bottom face (y = -1)
+        {1, 5, 6}, {1, 6, 2},                                                   // right face (x = +1)
+        {2, 1, 0}, {2, 0, 3},                                                   // front face (z = -1)
+        {3, 0, 4}, {3, 4, 7},                                                   // left face (x = -1)
+        {6, 7, 3}, {6, 3, 2},                                                   // top face (y = +1)
+        {7, 4, 5}, {7, 5, 6},                                                   // back face (z = +1)
       };
 
       // set up matrices

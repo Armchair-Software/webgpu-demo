@@ -1,13 +1,13 @@
 namespace render::shaders {
-inline constexpr char const *default_wgsl{R"a61ff0783701edb3(struct vertex_input {
+inline constexpr char const *default_wgsl{R"c1722713901389d7(struct vertex_input {
   @location(0) position: vec3f,
   @location(1) normal: vec3f,
   @location(2) colour: vec4f,
 };
 struct vertex_output {
   @builtin(position) position: vec4f,
-  @location(0) normal: vec3f,
-  @location(1) colour: vec4f,
+  @location(0) @interpolate(flat, first) normal: vec3f,
+  @location(1) @interpolate(flat, first) colour: vec4f,
 };
 struct uniform_struct {
   model_view_projection_matrix: mat4x4f,
@@ -26,4 +26,4 @@ fn vs_main(in: vertex_input) -> vertex_output {
 fn fs_main(in: vertex_output) -> @location(0) vec4f {
   return in.colour;
 }
-)a61ff0783701edb3"};}
+)c1722713901389d7"};}
