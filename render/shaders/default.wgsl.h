@@ -1,5 +1,5 @@
 namespace render::shaders {
-inline constexpr char const *default_wgsl{R"621e9b365323fea7(struct vertex_input {
+inline constexpr char const *default_wgsl{R"93b4d71f9569621b(struct vertex_input {
   @location(0) position: vec3f,
   @location(1) normal: vec3f,
   @location(2) colour: vec4f,
@@ -28,4 +28,4 @@ fn vs_main(in: vertex_input) -> vertex_output {
 fn fs_main(in: vertex_output) -> @location(0) vec4f {
   return in.colour;
 }
-)621e9b365323fea7"};}
+)93b4d71f9569621b"};}

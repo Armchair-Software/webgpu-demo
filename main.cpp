@@ -720,7 +720,7 @@ void game_manager::loop_wait_init() {
         .buffers{&vertex_buffer_layout},
       },
       .primitive{                                                               // PrimitiveState
-        // TODO: cullmode front etc
+        .cullMode{wgpu::CullMode::Back},
       },
       .depthStencil{&depth_stencil_state},
       .multisample{},
@@ -838,10 +838,10 @@ void game_manager::loop_main() {
       };
       std::vector<triangle_index> index_data{
         {0, 1, 5}, {0, 5, 4},                                                   // bottom face (y = -1)
-        {1, 5, 6}, {1, 6, 2},                                                   // right face (x = +1)
+        {1, 6, 5}, {1, 2, 6},                                                   // right face (x = +1)
         {2, 1, 0}, {2, 0, 3},                                                   // front face (z = -1)
         {3, 0, 4}, {3, 4, 7},                                                   // left face (x = -1)
-        {6, 7, 3}, {6, 3, 2},                                                   // top face (y = +1)
+        {6, 3, 7}, {6, 2, 3},                                                   // top face (y = +1)
         {7, 4, 5}, {7, 5, 6},                                                   // back face (z = +1)
       };
 
