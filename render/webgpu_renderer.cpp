@@ -518,6 +518,21 @@ void webgpu_renderer::init() {
   }
 }
 
+void webgpu_renderer::init_swapchain() {
+  /// Create or recreate the swapchain for the current viewport size
+  logger << "WebGPU creating swapchain";
+
+  wgpu::SwapChainDescriptor swapchain_descriptor{
+    .label{"Swapchain 1"},
+    .usage{wgpu::TextureUsage::RenderAttachment},
+    .format{webgpu.surface_preferred_format},
+    .width{ window.viewport_size.x},
+    .height{window.viewport_size.y},
+    .presentMode{wgpu::PresentMode::Fifo},
+  };
+  webgpu.swapchain = webgpu.device.CreateSwapChain(webgpu.surface, &swapchain_descriptor);
+}
+
 bool webgpu_renderer::ready_for_configure() const {
   /// Check if initialisation has completed and the WebGPU system is ready for configuration
   /// Since init occurs asynchronously, some emscripten ticks are needed before this becomes trie
@@ -538,18 +553,7 @@ void webgpu_renderer::configure() {
     webgpu.surface.Configure(&surface_configuration);
   }
 
-  logger << "WebGPU creating swapchain";
-  {
-    wgpu::SwapChainDescriptor swapchain_descriptor{
-      .label{"Swapchain 1"},
-      .usage{wgpu::TextureUsage::RenderAttachment},
-      .format{webgpu.surface_preferred_format},
-      .width{ window.viewport_size.x},
-      .height{window.viewport_size.y},
-      .presentMode{wgpu::PresentMode::Fifo},
-    };
-    webgpu.swapchain = webgpu.device.CreateSwapChain(webgpu.surface, &swapchain_descriptor);
-  }
+  init_swapchain();
 
   logger << "WebGPU acquiring queue";
   webgpu.queue = webgpu.device.GetQueue();
@@ -705,7 +709,6 @@ void webgpu_renderer::configure() {
   emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, false,   // target, userdata, use_capture, callback
     ([](int /*event_type*/, EmscriptenUiEvent const *event, void *data) {       // event_type == EMSCRIPTEN_EVENT_RESIZE
       auto &renderer{*static_cast<webgpu_renderer*>(data)};
-      auto &logger{renderer.logger};
       auto &window{renderer.window};
       auto &webgpu{renderer.webgpu};
       window.document_body_size.x = static_cast<unsigned int>(event->documentBodyClientWidth);
@@ -716,20 +719,8 @@ void webgpu_renderer::configure() {
       window.window_outer_size.y  = static_cast<unsigned int>(event->windowOuterHeight);
 
       window.viewport_size = window.window_inner_size;
-      // TODO: de-duplicate these
-      logger << "WebGPU creating swapchain";
-      {
-        wgpu::SwapChainDescriptor swapchain_descriptor{
-          .label{"Swapchain 1"},
-          .usage{wgpu::TextureUsage::RenderAttachment},
-          .format{webgpu.surface_preferred_format},
-          .width{ window.viewport_size.x},
-          .height{window.viewport_size.y},
-          .presentMode{wgpu::PresentMode::Fifo},
-        };
-        webgpu.swapchain = webgpu.device.CreateSwapChain(webgpu.surface, &swapchain_descriptor);
-      }
 
+      renderer.init_swapchain();
       // create the depth buffer
       {
         constexpr auto depth_texture_format{wgpu::TextureFormat::Depth24Plus};

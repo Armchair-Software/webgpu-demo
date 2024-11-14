@@ -41,6 +41,7 @@ public:
 
 private:
   void init();
+  void init_swapchain();
 
 public:
   bool ready_for_configure() const;
