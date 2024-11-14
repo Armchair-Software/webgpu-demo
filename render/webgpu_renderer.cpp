@@ -1,5 +1,6 @@
 #include "webgpu_renderer.h"
 #include "logstorm/manager.h"
+#include <array>
 #include <set>
 #include <string>
 #include <vector>
@@ -602,18 +603,18 @@ void webgpu_renderer::configure() {
 
     logger << "WebGPU configuring pipeline";
 
-    std::vector<wgpu::VertexAttribute> vertex_attributes{
-      {
+    std::array vertex_attributes{
+      wgpu::VertexAttribute{
         .format{wgpu::VertexFormat::Float32x3},
         .offset{offsetof(vertex, position)},
         .shaderLocation{0},
       },
-      {
+      wgpu::VertexAttribute{
         .format{wgpu::VertexFormat::Float32x3},
         .offset{offsetof(vertex, normal)},
         .shaderLocation{1},
       },
-      {
+      wgpu::VertexAttribute{
         .format{wgpu::VertexFormat::Float32x4},
         .offset{offsetof(vertex, colour)},
         .shaderLocation{2},
