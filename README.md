@@ -2,6 +2,8 @@
 
 This is a simple proof of concept, a minimal 3D engine written in C++, compiled to WASM with Emscripten.  Running in the browser, rendering with WebGPU.
 
+![image](https://github.com/user-attachments/assets/c3aab0f2-d9b3-41cb-b333-b37f74710215)
+
 ## Dependencies
 - [Emscripten](https://emscripten.org/)
 - CMake
