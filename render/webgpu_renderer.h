@@ -41,9 +41,9 @@ class webgpu_renderer {
   std::function<void()> main_loop_callback;
 
 public:
-  webgpu_renderer(logstorm::manager &logger);
+  webgpu_renderer(logstorm::manager &logger, std::function<void()> &&main_loop_callback);
 
-  void init(std::function<void()> &&main_loop_callback);
+  void init();
 
 private:
   void init_swapchain();

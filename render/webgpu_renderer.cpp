@@ -88,14 +88,14 @@ std::string enum_wgpu_name(Tcpp enum_in) {
 
 }
 
-webgpu_renderer::webgpu_renderer(logstorm::manager &this_logger)
-  : logger{this_logger} {
+webgpu_renderer::webgpu_renderer(logstorm::manager &this_logger, std::function<void()> &&this_main_loop_callback)
+  : logger{this_logger},
+    main_loop_callback{this_main_loop_callback} {
+  init();
 }
 
-void webgpu_renderer::init(std::function<void()> &&this_main_loop_callback) {
+void webgpu_renderer::init() {
   /// Initialise the WebGPU system
-  main_loop_callback = std::move(this_main_loop_callback);
-
   /**
   // TODO: move this to a window init
   if(glfwInit() != GLFW_TRUE) {                                                 // initialise the opengl window
