@@ -16,9 +16,10 @@ class webgpu_renderer {
     wgpu::Queue queue;                                                          // the queue for this device, once it has been acquired
     wgpu::BindGroupLayout bind_group_layout;                                    // layout for the uniform bind group
     wgpu::RenderPipeline pipeline;                                              // the render pipeline currently in use
+
     wgpu::SwapChain swapchain;                                                  // the swapchain providing a texture view to render to
 
-    wgpu::Texture depth_texture;
+    wgpu::Texture depth_texture;                                                // depth buffer
     wgpu::TextureView depth_texture_view;
 
     wgpu::TextureFormat surface_preferred_format{wgpu::TextureFormat::Undefined}; // preferred texture format for this surface
@@ -42,6 +43,7 @@ public:
 private:
   void init();
   void init_swapchain();
+  void init_depth_texture();
 
 public:
   bool ready_for_configure() const;

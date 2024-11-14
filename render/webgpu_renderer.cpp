@@ -533,6 +533,38 @@ void webgpu_renderer::init_swapchain() {
   webgpu.swapchain = webgpu.device.CreateSwapChain(webgpu.surface, &swapchain_descriptor);
 }
 
+void webgpu_renderer::init_depth_texture() {
+  /// Create or recreate the depth buffer and its texture view
+  {
+    constexpr auto depth_texture_format{wgpu::TextureFormat::Depth24Plus};
+    wgpu::TextureDescriptor depth_texture_descriptor{
+      .label{"Depth texture 1"},
+      .usage{wgpu::TextureUsage::RenderAttachment},
+      .dimension{wgpu::TextureDimension::e2D},
+      .size{
+        window.viewport_size.x,
+        window.viewport_size.y,
+        1
+      },
+      .format{wgpu::TextureFormat::Depth24Plus},
+      .viewFormatCount{1},
+      .viewFormats{&depth_texture_format},
+    };
+    webgpu.depth_texture = webgpu.device.CreateTexture(&depth_texture_descriptor);
+  }
+  {
+    wgpu::TextureViewDescriptor depth_texture_view_descriptor{
+      .label{"Depth texture view 1"},
+      .format{wgpu::TextureFormat::Depth24Plus},
+      .dimension{wgpu::TextureViewDimension::e2D},
+      .mipLevelCount{1},
+      .arrayLayerCount{1},
+      .aspect{wgpu::TextureAspect::DepthOnly},
+    };
+    webgpu.depth_texture_view = webgpu.depth_texture.CreateView(&depth_texture_view_descriptor);
+  }
+}
+
 bool webgpu_renderer::ready_for_configure() const {
   /// Check if initialisation has completed and the WebGPU system is ready for configuration
   /// Since init occurs asynchronously, some emscripten ticks are needed before this becomes trie
@@ -676,41 +708,12 @@ void webgpu_renderer::configure() {
     webgpu.pipeline = webgpu.device.CreateRenderPipeline(&render_pipeline_descriptor);
   }
 
-  // create the depth buffer
-  {
-    constexpr auto depth_texture_format{wgpu::TextureFormat::Depth24Plus};
-    wgpu::TextureDescriptor depth_texture_descriptor{
-      .label{"Depth texture 1"},
-      .usage{wgpu::TextureUsage::RenderAttachment},
-      .dimension{wgpu::TextureDimension::e2D},
-      .size{
-        static_cast<uint32_t>(window.viewport_size.x),
-        static_cast<uint32_t>(window.viewport_size.y),
-        1
-      },
-      .format{wgpu::TextureFormat::Depth24Plus},
-      .viewFormatCount{1},
-      .viewFormats{&depth_texture_format},
-    };
-    webgpu.depth_texture = webgpu.device.CreateTexture(&depth_texture_descriptor);
-  }
-  {
-    wgpu::TextureViewDescriptor depth_texture_view_descriptor{
-      .label{"Depth texture view 1"},
-      .format{wgpu::TextureFormat::Depth24Plus},
-      .dimension{wgpu::TextureViewDimension::e2D},
-      .mipLevelCount{1},
-      .arrayLayerCount{1},
-      .aspect{wgpu::TextureAspect::DepthOnly},
-    };
-    webgpu.depth_texture_view = webgpu.depth_texture.CreateView(&depth_texture_view_descriptor);
-  }
+  init_depth_texture();
 
   emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, false,   // target, userdata, use_capture, callback
     ([](int /*event_type*/, EmscriptenUiEvent const *event, void *data) {       // event_type == EMSCRIPTEN_EVENT_RESIZE
       auto &renderer{*static_cast<webgpu_renderer*>(data)};
       auto &window{renderer.window};
-      auto &webgpu{renderer.webgpu};
       window.document_body_size.x = static_cast<unsigned int>(event->documentBodyClientWidth);
       window.document_body_size.y = static_cast<unsigned int>(event->documentBodyClientHeight);
       window.window_inner_size.x  = static_cast<unsigned int>(event->windowInnerWidth);
@@ -721,35 +724,7 @@ void webgpu_renderer::configure() {
       window.viewport_size = window.window_inner_size;
 
       renderer.init_swapchain();
-      // create the depth buffer
-      {
-        constexpr auto depth_texture_format{wgpu::TextureFormat::Depth24Plus};
-        wgpu::TextureDescriptor depth_texture_descriptor{
-          .label{"Depth texture 1"},
-          .usage{wgpu::TextureUsage::RenderAttachment},
-          .dimension{wgpu::TextureDimension::e2D},
-          .size{
-            window.viewport_size.x,
-            window.viewport_size.y,
-            1
-          },
-          .format{wgpu::TextureFormat::Depth24Plus},
-          .viewFormatCount{1},
-          .viewFormats{&depth_texture_format},
-        };
-        webgpu.depth_texture = webgpu.device.CreateTexture(&depth_texture_descriptor);
-      }
-      {
-        wgpu::TextureViewDescriptor depth_texture_view_descriptor{
-          .label{"Depth texture view 1"},
-          .format{wgpu::TextureFormat::Depth24Plus},
-          .dimension{wgpu::TextureViewDimension::e2D},
-          .mipLevelCount{1},
-          .arrayLayerCount{1},
-          .aspect{wgpu::TextureAspect::DepthOnly},
-        };
-        webgpu.depth_texture_view = webgpu.depth_texture.CreateView(&depth_texture_view_descriptor);
-      }
+      renderer.init_depth_texture();
 
       return true;
     })
