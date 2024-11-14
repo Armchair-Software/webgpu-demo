@@ -125,6 +125,7 @@ add_compile_definitions(
 add_executable(client
   # project-specific:
   main.cpp
+  render/webgpu_renderer.cpp
   # shared libraries:
   logstorm/log_line_helper.cpp
   logstorm/manager.cpp
