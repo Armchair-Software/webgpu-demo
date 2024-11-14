@@ -7,6 +7,7 @@ This is a simple proof of concept, a minimal 3D engine written in C++, compiled 
 - CMake
 - [VectorStorm](https://github.com/Armchair-Software/vectorstorm) (included)
 - [LogStorm](https://github.com/VoxelStorm-Ltd/logstorm) (included)
+- [magic_enum](https://github.com/Neargye/magic_enum) (included)
 
 ## Building
 The easiest way to assemble everything (including in-tree shader resource assembly) is to use the included build script:
