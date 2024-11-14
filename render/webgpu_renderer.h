@@ -1,5 +1,6 @@
 #pragma once
 
+#include <emscripten/em_types.h>
 #include <webgpu/webgpu_cpp.h>
 #include "logstorm/logstorm_forward.h"
 #include "vectorstorm/vector/vector2.h"
@@ -37,17 +38,21 @@ class webgpu_renderer {
     float device_pixel_ratio{1.0f};
   } window;
 
+  std::function<void()> main_loop_callback;
+
 public:
   webgpu_renderer(logstorm::manager &logger);
 
+  void init(std::function<void()> &&main_loop_callback);
+
 private:
-  void init();
   void init_swapchain();
   void init_depth_texture();
 
-public:
-  bool ready_for_configure() const;
+  void wait_to_configure_loop();
   void configure();
+
+public:
   void draw();
 };
 

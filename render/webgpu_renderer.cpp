@@ -90,11 +90,12 @@ std::string enum_wgpu_name(Tcpp enum_in) {
 
 webgpu_renderer::webgpu_renderer(logstorm::manager &this_logger)
   : logger{this_logger} {
-  init();
 }
 
-void webgpu_renderer::init() {
+void webgpu_renderer::init(std::function<void()> &&this_main_loop_callback) {
   /// Initialise the WebGPU system
+  main_loop_callback = std::move(this_main_loop_callback);
+
   /**
   // TODO: move this to a window init
   if(glfwInit() != GLFW_TRUE) {                                                 // initialise the opengl window
@@ -517,6 +518,13 @@ void webgpu_renderer::init() {
       this
     );
   }
+
+  emscripten_set_main_loop_arg([](void *data){
+    /// Dispatch the loop waiting for WebGPU to become ready
+    auto &renderer{*static_cast<webgpu_renderer*>(data)};
+    renderer.wait_to_configure_loop();
+  }, this, 0, true);                                                            // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
+  std::unreachable();
 }
 
 void webgpu_renderer::init_swapchain() {
@@ -566,10 +574,24 @@ void webgpu_renderer::init_depth_texture() {
   }
 }
 
-bool webgpu_renderer::ready_for_configure() const {
+void webgpu_renderer::wait_to_configure_loop() {
   /// Check if initialisation has completed and the WebGPU system is ready for configuration
-  /// Since init occurs asynchronously, some emscripten ticks are needed before this becomes trie
-  return bool{webgpu.device};
+  /// Since init occurs asynchronously, some emscripten ticks are needed before this becomes true
+  if(!webgpu.device) {
+    logger << "WebGPU: Waiting for device to become available";
+    // TODO: sensible timeout
+    return;
+  }
+  configure();
+
+  logger << "WebGPU: Entering main loop";
+  emscripten_cancel_main_loop();
+  emscripten_set_main_loop_arg([](void *data){
+    /// Main pseudo-loop waiting for initialisation to complete
+    auto &renderer{*static_cast<webgpu_renderer*>(data)};
+    renderer.main_loop_callback();
+  }, this, 0, true);                                                            // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
+  std::unreachable();
 }
 
 void webgpu_renderer::configure() {

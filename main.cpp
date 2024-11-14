@@ -37,31 +37,8 @@ void game_manager::run() {
   /// Launch the game pseudo-loop
   logger << "Starting Armchair WebGPU Demo";
 
-  logger << "Entering WebGPU init loop";
-  emscripten_set_main_loop_arg([](void *data){
-    /// Dispatch the loop waiting for WebGPU to become ready
-    auto &game{*static_cast<game_manager*>(data)};
-    game.loop_wait_init();
-  }, this, 0, true);                                                            // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
-  std::unreachable();
-}
+  renderer.init([&]{loop_main();});                                             // dispatch the main loop once the renderer has initialised
 
-void game_manager::loop_wait_init() {
-  /// Main pseudo-loop waiting for initialisation to complete
-  if(!renderer.ready_for_configure()) {
-    logger << "Waiting for WebGPU device to become available";
-    // TODO: sensible timeout
-    return;
-  }
-  renderer.configure();
-
-  logger << "Entering main loop";
-  emscripten_cancel_main_loop();
-  emscripten_set_main_loop_arg([](void *data){
-    /// Main pseudo-loop dispatcher
-    auto &game{*static_cast<game_manager*>(data)};
-    game.loop_main();
-  }, this, 0, true);                                                            // loop function, user data, FPS (0 to use browser requestAnimationFrame mechanism), simulate infinite loop
   std::unreachable();
 }
 
