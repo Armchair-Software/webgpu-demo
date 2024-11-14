@@ -185,6 +185,7 @@ void webgpu_renderer::init() {
           {
             wgpu::AdapterProperties adapter_properties;
             adapter.GetProperties(&adapter_properties);
+            // TODO: wgpuAdapterGetProperties is deprecated, use wgpuAdapterGetInfo instead - C++ wrapper needs to be updated
             logger << "DEBUG: WebGPU adapter properties: vendorID: " << adapter_properties.vendorID;
             logger << "DEBUG: WebGPU adapter properties: vendorName: " << adapter_properties.vendorName;
             logger << "DEBUG: WebGPU adapter properties: architecture: " << adapter_properties.architecture;
@@ -425,10 +426,10 @@ void webgpu_renderer::init() {
             for(auto const feature : device_features) {
               logger << "DEBUG: WebGPU device features: " << magic_enum::enum_name(feature);
             }
-            {
-              wgpu::SupportedLimits adapter_limits;
-              bool result{device.GetLimits(&adapter_limits)};
-              #ifndef NDEBUG
+            #ifndef NDEBUG
+              {
+                wgpu::SupportedLimits adapter_limits;
+                bool result{device.GetLimits(&adapter_limits)};
                 logger << "DEBUG: WebGPU device limits result: " << std::boolalpha << result;
                 logger << "DEBUG: WebGPU device limits nextInChain: " << adapter_limits.nextInChain;
                 logger << "DEBUG: WebGPU device limits maxTextureDimension1D: " << adapter_limits.limits.maxTextureDimension1D;
@@ -462,8 +463,8 @@ void webgpu_renderer::init() {
                 logger << "DEBUG: WebGPU device limits maxComputeWorkgroupSizeY: " << adapter_limits.limits.maxComputeWorkgroupSizeY;
                 logger << "DEBUG: WebGPU device limits maxComputeWorkgroupSizeZ: " << adapter_limits.limits.maxComputeWorkgroupSizeZ;
                 logger << "DEBUG: WebGPU device limits maxComputeWorkgroupsPerDimension: " << adapter_limits.limits.maxComputeWorkgroupsPerDimension;
-              #endif // NDEBUG
-            }
+              }
+            #endif // NDEBUG
 
             device.SetUncapturedErrorCallback(
               [](WGPUErrorType type, char const *message, void *data){
