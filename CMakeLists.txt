@@ -206,7 +206,6 @@ target_link_options(client PRIVATE
   -sWASM_BIGINT
   -sELIMINATE_DUPLICATE_FUNCTIONS=1
   -sUSE_WEBGPU
-  -sUSE_GLFW=3
   -sFETCH=1
   -sUSE_FREETYPE=1
   ${exception_link_options}

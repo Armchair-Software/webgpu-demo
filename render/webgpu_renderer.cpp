@@ -96,21 +96,6 @@ webgpu_renderer::webgpu_renderer(logstorm::manager &this_logger, std::function<v
 
 void webgpu_renderer::init() {
   /// Initialise the WebGPU system
-  /**
-  // TODO: move this to a window init
-  if(glfwInit() != GLFW_TRUE) {                                                 // initialise the opengl window
-    logger << "render::window: ERROR: GLFW initialisation failed!  Cannot continue.";
-    throw std::runtime_error{"Could not initialize GLFW"};
-  }
-
-  glfw_callback_error = [&](int error_code, char const *description){
-    logger << "ERROR: GLFW: " << error_code << ": " << description;
-  };
-  glfwSetErrorCallback(glfw_callback_error.target<void(int, char const*)>());   // pass the target to GLFW to set the callback as a function pointer
-
-  logger << "render::window: GLFW monitor name: " << glfwGetMonitorName(nullptr);
-  **/
-
   // find out about the initial canvas size and the current window and doc sizes
   window.viewport_size.assign(emscripten::val::global("window")["innerWidth"].as<unsigned int>(),
                               emscripten::val::global("window")["innerHeight"].as<unsigned int>());
@@ -118,20 +103,6 @@ void webgpu_renderer::init() {
   logger << "render::window: Viewport size: " << window.viewport_size << " (device pixels: approx " << static_cast<vec2f>(window.viewport_size) * window.device_pixel_ratio << ")";
   logger << "render::window: Device pixel ratio: " << window.device_pixel_ratio << " canvas pixels to 1 device pixel (" << static_cast<unsigned int>(std::round(100.0f * window.device_pixel_ratio)) << "% zoom)";
 
-  /**
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  window.glfw_window = glfwCreateWindow(window.viewport_size.x,                 // use initial canvas size
-                                        window.viewport_size.y,
-                                        "Armchair WebGPU Demo",                 // window title
-                                        nullptr,                                // monitor to use fullscreen, NULL here means run windowed - we always do under emscripten
-                                        nullptr);                               // the context to share with, see http://stackoverflow.com/a/17792242/1678468
-  if(!window.glfw_window) {
-    logger << "render::window: ERROR: GLFW window creation failed!  Cannot continue.";
-    throw std::runtime_error{"Could not create a GLFW window"};
-  }
-
-  glfwSetWindowUserPointer(window.glfw_window, this);                           // set callback userdata
-  **/
   {
     // create a WebGPU instance
     wgpu::Instance instance{wgpu::CreateInstance()};
