@@ -129,13 +129,7 @@ add_executable(client
   logstorm/log_line_helper.cpp
   logstorm/manager.cpp
   logstorm/sink/base.cpp
-  #logstorm/sink/circular_buffer.cpp
   logstorm/sink/console.cpp
-  #logstorm/sink/console_err.cpp
-  #logstorm/sink/dummy.cpp
-  #logstorm/sink/file.cpp
-  #logstorm/sink/fstream.cpp
-  #logstorm/sink/stream.cpp
   logstorm/timestamp.cpp
   # 3rd party libraries:
   #TODO
