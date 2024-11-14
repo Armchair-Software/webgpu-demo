@@ -32,6 +32,7 @@ if(build_type STREQUAL "debug")
     # debugging
     -g3
     --profiling-funcs
+    -sASSERTIONS
     # ensure fast link in debug mode: https://emscripten.org/docs/optimizing/Optimizing-Code.html#link-times
     -sERROR_ON_WASM_CHANGES_AFTER_LINK
   )
@@ -50,7 +51,8 @@ elseif(build_type STREQUAL "release")
     -O3
     --no-demangle
     -flto
-    --closure 1
+    # fails on wgpuSurfaceGetCapabilities:
+    #--closure 1
     # currently broken:
     #-sEVAL_CTORS
     # debugging disabled
