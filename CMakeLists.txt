@@ -207,7 +207,6 @@ target_link_options(client PRIVATE
   -sELIMINATE_DUPLICATE_FUNCTIONS=1
   -sUSE_WEBGPU
   ${exception_link_options}
-  -sEXPORTED_RUNTIME_METHODS=[ccall]
   -sLLD_REPORT_UNDEFINED
   # don't emit code for node.js etc
   -sENVIRONMENT=web
