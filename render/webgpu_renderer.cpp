@@ -112,30 +112,14 @@ void webgpu_renderer::init() {
   **/
 
   // find out about the initial canvas size and the current window and doc sizes
-  emscripten_get_canvas_element_size("#canvas", &window.canvas_size.x, &window.canvas_size.y);
-  window.document_body_size.assign(emscripten::val::global("document")["body"]["clientWidth"].as<unsigned int>(),
-                                   emscripten::val::global("document")["body"]["clientHeight"].as<unsigned int>());
-  window.window_inner_size.assign( emscripten::val::global("window")["innerWidth"].as<unsigned int>(),
-                                   emscripten::val::global("window")["innerHeight"].as<unsigned int>());
-  window.window_outer_size.assign( emscripten::val::global("window")["outerWidth"].as<unsigned int>(),
-                                   emscripten::val::global("window")["outerHeight"].as<unsigned int>());
+  window.viewport_size.assign(emscripten::val::global("window")["innerWidth"].as<unsigned int>(),
+                              emscripten::val::global("window")["innerHeight"].as<unsigned int>());
   window.device_pixel_ratio = emscripten::val::global("window")["devicePixelRatio"].as<float>(); // query device pixel ratio using JS
-  logger << "render::window: Window outer size: " << window.window_outer_size << " (device pixels: approx " << static_cast<vec2f>(window.window_outer_size) * window.device_pixel_ratio << ")";
-  logger << "render::window: Window inner size: " << window.window_inner_size << " (device pixels: approx " << static_cast<vec2f>(window.window_inner_size) * window.device_pixel_ratio << ")";
-  logger << "render::window: Document body size: " << window.document_body_size << " (device pixels: approx " << static_cast<vec2f>(window.document_body_size) * window.device_pixel_ratio << ")";
-  logger << "render::window: Default canvas size: " << window.canvas_size << " (device pixels: approx " << static_cast<vec2f>(window.canvas_size) * window.device_pixel_ratio << ")";
+  logger << "render::window: Viewport size: " << window.viewport_size << " (device pixels: approx " << static_cast<vec2f>(window.viewport_size) * window.device_pixel_ratio << ")";
   logger << "render::window: Device pixel ratio: " << window.device_pixel_ratio << " canvas pixels to 1 device pixel (" << static_cast<unsigned int>(std::round(100.0f * window.device_pixel_ratio)) << "% zoom)";
-
-  window.viewport_size = window.window_inner_size;
-  logger << "render::window: Setting viewport requested size: " << window.viewport_size << " (device pixels: approx " << static_cast<vec2f>(window.viewport_size) * window.device_pixel_ratio << ")";
-
-  // TODO: resize callback here (from Project Raindrop)
-  // TODO: resize callback should have surface.Configure ... size updates
 
   /**
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  // TODO: disable no-resize hint when resize callback has been implemented
-
   window.glfw_window = glfwCreateWindow(window.viewport_size.x,                 // use initial canvas size
                                         window.viewport_size.y,
                                         "Armchair WebGPU Demo",                 // window title
@@ -736,19 +720,11 @@ void webgpu_renderer::configure() {
   emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, false,   // target, userdata, use_capture, callback
     ([](int /*event_type*/, EmscriptenUiEvent const *event, void *data) {       // event_type == EMSCRIPTEN_EVENT_RESIZE
       auto &renderer{*static_cast<webgpu_renderer*>(data)};
-      auto &window{renderer.window};
-      window.document_body_size.x = static_cast<unsigned int>(event->documentBodyClientWidth);
-      window.document_body_size.y = static_cast<unsigned int>(event->documentBodyClientHeight);
-      window.window_inner_size.x  = static_cast<unsigned int>(event->windowInnerWidth);
-      window.window_inner_size.y  = static_cast<unsigned int>(event->windowInnerHeight);
-      window.window_outer_size.x  = static_cast<unsigned int>(event->windowOuterWidth);
-      window.window_outer_size.y  = static_cast<unsigned int>(event->windowOuterHeight);
-
-      window.viewport_size = window.window_inner_size;
+      renderer.window.viewport_size.x = static_cast<unsigned int>(event->windowInnerWidth);
+      renderer.window.viewport_size.y = static_cast<unsigned int>(event->windowInnerHeight);
 
       renderer.init_swapchain();
       renderer.init_depth_texture();
-
       return true;
     })
   );

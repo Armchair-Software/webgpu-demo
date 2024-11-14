@@ -30,11 +30,7 @@ class webgpu_renderer {
     //GLFWwindow *glfw_window{nullptr};                                           // GLFW handle for the window
 
     vec2ui viewport_size;                                                       // our idea of the size of the viewport we render to, in real pixels
-    vec2i canvas_size;                                                          // implementation-reported canvas size
-    vec2ui document_body_size;                                                  // these sizes are before pixel ratio scaling, i.e. they change when the browser window is zoomed
-    vec2ui window_inner_size;
-    vec2ui window_outer_size;
-    // TODO: get rid of whatever we don't need here
+
     float device_pixel_ratio{1.0f};
   } window;
 
