@@ -214,8 +214,6 @@ target_link_options(client PRIVATE
   # don't emit code for node.js etc
   -sENVIRONMENT=web
   --shell-file=${CMAKE_SOURCE_DIR}/html/client.html
-  # embedded files
-  --preload-file ../assets@/
 )
 
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
