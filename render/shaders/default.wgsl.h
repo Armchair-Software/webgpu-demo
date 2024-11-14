@@ -1,5 +1,5 @@
 namespace render::shaders {
-inline constexpr char const *default_wgsl{R"93b4d71f9569621b(struct vertex_input {
+inline constexpr char const *default_wgsl{R"081f8b92eef0a2c7(struct vertex_input {
   @location(0) position: vec3f,
   @location(1) normal: vec3f,
   @location(2) colour: vec4f,
@@ -13,7 +13,7 @@ struct uniform_struct {
   normal_matrix: mat3x3f,
 };
 @group(0) @binding(0) var<uniform> uniforms: uniform_struct;
-const light_dir: vec3f = normalize(vec3f(1.0, 0.25, -0.5));
+const light_dir = vec3f(0.872872, 0.218218, -0.436436); 
 const ambient = 0.5f;
 @vertex
 fn vs_main(in: vertex_input) -> vertex_output {
@@ -28,4 +28,4 @@ fn vs_main(in: vertex_input) -> vertex_output {
 fn fs_main(in: vertex_output) -> @location(0) vec4f {
   return in.colour;
 }
-)93b4d71f9569621b"};}
+)081f8b92eef0a2c7"};}

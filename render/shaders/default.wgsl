@@ -17,7 +17,7 @@ struct uniform_struct {
 
 @group(0) @binding(0) var<uniform> uniforms: uniform_struct;
 
-const light_dir: vec3f = normalize(vec3f(1.0, 0.25, -0.5));
+const light_dir = vec3f(0.872872, 0.218218, -0.436436); // manually normalised (1.0, 0.25, -0.5)
 const ambient = 0.5f;
 
 @vertex
