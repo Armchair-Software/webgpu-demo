@@ -142,10 +142,11 @@ void webgpu_renderer::init() {
 
         auto &adapter{webgpu.adapter};
         adapter = wgpu::Adapter::Acquire(adapter_ptr);
+        if(!adapter) throw std::runtime_error{"WebGPU: Could not acquire adapter"};
 
         // report surface and adapter capabilities
-        {
-          #ifndef NDEBUG
+        #ifndef NDEBUG
+          {
             wgpu::SurfaceCapabilities surface_capabilities;
             webgpu.surface.GetCapabilities(adapter, &surface_capabilities);
             for(size_t i{0}; i != surface_capabilities.formatCount; ++i) {
@@ -157,10 +158,14 @@ void webgpu_renderer::init() {
             for(size_t i{0}; i != surface_capabilities.alphaModeCount; ++i) {
               logger << "DEBUG: WebGPU surface capabilities: alpha modes: " << magic_enum::enum_name(surface_capabilities.alphaModes[i]);
             }
-          #endif // NDEBUG
-        }
+          }
+        #endif // NDEBUG
         webgpu.surface_preferred_format = webgpu.surface.GetPreferredFormat(adapter);
         logger << "WebGPU surface preferred format for this adapter: " << magic_enum::enum_name(webgpu.surface_preferred_format);
+        if(webgpu.surface_preferred_format == wgpu::TextureFormat::Undefined) {
+          webgpu.surface_preferred_format = wgpu::TextureFormat::BGRA8Unorm;
+          logger << "WebGPU manually specifying preferred format: " << magic_enum::enum_name(webgpu.surface_preferred_format);
+        }
 
         {
           wgpu::AdapterInfo adapter_info;
@@ -176,8 +181,8 @@ void webgpu_renderer::init() {
           #endif // NDEBUG
           logger << "WebGPU adapter info: " << adapter_info.description << " (" << magic_enum::enum_name(adapter_info.backendType) << ", " << adapter_info.vendor << ", " << adapter_info.architecture << ")";
         }
-        {
-          #ifndef NDEBUG
+        #ifndef NDEBUG
+          {
             wgpu::AdapterProperties adapter_properties;
             adapter.GetProperties(&adapter_properties);
             logger << "DEBUG: WebGPU adapter properties: vendorID: " << adapter_properties.vendorID;
@@ -190,8 +195,8 @@ void webgpu_renderer::init() {
             logger << "DEBUG: WebGPU adapter properties: adapterType: " << magic_enum::enum_name(adapter_properties.adapterType);
             logger << "DEBUG: WebGPU adapter properties: compatibilityMode: " << std::boolalpha << adapter_properties.compatibilityMode;
             logger << "DEBUG: WebGPU adapter properties: nextInChain: " << adapter_properties.nextInChain;
-          #endif // NDEBUG
-        }
+          }
+        #endif // NDEBUG
         std::set<wgpu::FeatureName> adapter_features;
         {
           // see https://developer.mozilla.org/en-US/docs/Web/API/GPUSupportedFeatures and https://www.w3.org/TR/webgpu/#feature-index
@@ -208,7 +213,8 @@ void webgpu_renderer::init() {
         }
 
         wgpu::SupportedLimits adapter_limits;
-        bool result{adapter.GetLimits(&adapter_limits)};
+        bool const result{adapter.GetLimits(&adapter_limits)};
+        if(!result) throw std::runtime_error{"WebGPU: Could not query adapter limits"};
         #ifndef NDEBUG
           logger << "DEBUG: WebGPU adapter limits result: " << std::boolalpha << result;
           logger << "DEBUG: WebGPU adapter limits nextInChain: " << adapter_limits.nextInChain;
