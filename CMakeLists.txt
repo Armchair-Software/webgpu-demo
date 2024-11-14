@@ -206,8 +206,6 @@ target_link_options(client PRIVATE
   -sWASM_BIGINT
   -sELIMINATE_DUPLICATE_FUNCTIONS=1
   -sUSE_WEBGPU
-  -sFETCH=1
-  -sUSE_FREETYPE=1
   ${exception_link_options}
   -sEXPORTED_RUNTIME_METHODS=[ccall]
   -sLLD_REPORT_UNDEFINED
