@@ -2,10 +2,11 @@
 
 This is a simple proof of concept, a minimal 3D engine written in C++, compiled to WASM with Emscripten.  Running in the browser, rendering with WebGPU.
 
-![image](https://github.com/user-attachments/assets/c3aab0f2-d9b3-41cb-b333-b37f74710215)
+[![image](https://github.com/user-attachments/assets/c3aab0f2-d9b3-41cb-b333-b37f74710215)](https://armchair-software.github.io/webgpu-demo/)
 
 ## Live demo
 Live demo: https://armchair-software.github.io/webgpu-demo/
+
 This requires Firefox Nightly, or a recent version of Chrome or Chromium, with webgpu and Vulkan support explicitly enabled.
 
 ## Dependencies
