@@ -340,7 +340,7 @@ void webgpu_renderer::init() {
 
         wgpu::RequiredLimits const required_limits{
           .limits{                                                              // see https://www.w3.org/TR/webgpu/#limit-default
-            #define REQUIRE_LIMIT(limit) .limit{require_limit("limit", adapter_limits.limits.limit, requested_limits.required.limit, requested_limits.desired.limit)}
+            #define REQUIRE_LIMIT(limit) .limit{require_limit(#limit, adapter_limits.limits.limit, requested_limits.required.limit, requested_limits.desired.limit)}
             REQUIRE_LIMIT(maxTextureDimension1D),
             REQUIRE_LIMIT(maxTextureDimension2D),
             REQUIRE_LIMIT(maxTextureDimension3D),
@@ -416,7 +416,9 @@ void webgpu_renderer::init() {
             std::set<wgpu::FeatureName> device_features;
             {
               auto const count{device.EnumerateFeatures(nullptr)};
-              logger << "DEBUG: WebGPU device features count: " << count;
+              #ifndef NDEBUG
+                logger << "DEBUG: WebGPU device features count: " << count;
+              #endif // NDEBUG
               std::vector<wgpu::FeatureName> device_features_arr(count);
               device.EnumerateFeatures(device_features_arr.data());
               for(unsigned int i{0}; i != device_features_arr.size(); ++i) {
