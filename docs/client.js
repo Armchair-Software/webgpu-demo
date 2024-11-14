@@ -800,7 +800,7 @@ function dbg(...args) {
 // === Body ===
 
 var ASM_CONSTS = {
-  5292536: () => { alert("Error: Press F12 to see console for details.") }
+  5292360: () => { alert("Error: Press F12 to see console for details.") }
 };
 
 // end include: preamble.js
@@ -6910,78 +6910,6 @@ var ASM_CONSTS = {
 
 
 
-  var getCFunc = (ident) => {
-      var func = Module['_' + ident]; // closure exported function
-      assert(func, 'Cannot call unknown function ' + ident + ', make sure it is exported');
-      return func;
-    };
-  
-  var writeArrayToMemory = (array, buffer) => {
-      assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
-      HEAP8.set(array, buffer);
-    };
-  
-  
-  
-  
-  
-  
-    /**
-     * @param {string|null=} returnType
-     * @param {Array=} argTypes
-     * @param {Arguments|Array=} args
-     * @param {Object=} opts
-     */
-  var ccall = (ident, returnType, argTypes, args, opts) => {
-      // For fast lookup of conversion functions
-      var toC = {
-        'string': (str) => {
-          var ret = 0;
-          if (str !== null && str !== undefined && str !== 0) { // null string
-            ret = stringToUTF8OnStack(str);
-          }
-          return ret;
-        },
-        'array': (arr) => {
-          var ret = stackAlloc(arr.length);
-          writeArrayToMemory(arr, ret);
-          return ret;
-        }
-      };
-  
-      function convertReturnValue(ret) {
-        if (returnType === 'string') {
-          return UTF8ToString(ret);
-        }
-        if (returnType === 'boolean') return Boolean(ret);
-        return ret;
-      }
-  
-      var func = getCFunc(ident);
-      var cArgs = [];
-      var stack = 0;
-      assert(returnType !== 'array', 'Return type should not be "array".');
-      if (args) {
-        for (var i = 0; i < args.length; i++) {
-          var converter = toC[argTypes[i]];
-          if (converter) {
-            if (stack === 0) stack = stackSave();
-            cArgs[i] = converter(args[i]);
-          } else {
-            cArgs[i] = args[i];
-          }
-        }
-      }
-      var ret = func(...cArgs);
-      function onDone(ret) {
-        if (stack !== 0) stackRestore(stack);
-        return convertReturnValue(ret);
-      }
-  
-      ret = onDone(ret);
-      return ret;
-    };
-
   var incrementExceptionRefcount = (ptr) => ___cxa_increment_exception_refcount(ptr);
   Module['incrementExceptionRefcount'] = incrementExceptionRefcount;
 
@@ -7752,7 +7680,6 @@ function invoke_viiiiiiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a1
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
 
-Module['ccall'] = ccall;
 var missingLibrarySymbols = [
   'writeI53ToI64',
   'writeI53ToI64Clamped',
@@ -7786,6 +7713,8 @@ var missingLibrarySymbols = [
   'STACK_ALIGN',
   'POINTER_SIZE',
   'ASSERTIONS',
+  'getCFunc',
+  'ccall',
   'cwrap',
   'uleb128Encode',
   'sigToWasmTypes',
@@ -7803,6 +7732,7 @@ var missingLibrarySymbols = [
   'formatString',
   'intArrayToString',
   'AsciiToString',
+  'writeArrayToMemory',
   'registerKeyEventCallback',
   'getBoundingClientRect',
   'fillMouseEventData',
@@ -8002,7 +7932,6 @@ var unexportedSymbols = [
   'mmapAlloc',
   'wasmTable',
   'noExitRuntime',
-  'getCFunc',
   'freeTableIndexes',
   'functionsInTableMap',
   'setValue',
@@ -8026,7 +7955,6 @@ var unexportedSymbols = [
   'lengthBytesUTF32',
   'stringToNewUTF8',
   'stringToUTF8OnStack',
-  'writeArrayToMemory',
   'JSEvents',
   'specialHTMLTargets',
   'maybeCStringToJsString',
