@@ -61,7 +61,11 @@ public:
         return ss.str();
       }
     }
-    throw std::runtime_error("LogStorm: Invalid timestamp type " + std::to_string(static_cast<unsigned int>(type)));
+    #ifdef DISABLE_EXCEPTION_THROWING
+      return {};
+    #else // DISABLE_EXCEPTION_THROWING
+      throw std::runtime_error("LogStorm: Invalid timestamp type " + std::to_string(static_cast<unsigned int>(type)));
+    #endif // DISABLE_EXCEPTION_THROWING
   }
 
   explicit timestamp(types this_type = types::NONE);
