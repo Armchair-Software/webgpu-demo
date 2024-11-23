@@ -28,3 +28,22 @@ jobs:
         version: 3.1.71
     - name: build-rel
       run: CMAKE_BUILD_TYPE=Release ./build.sh
+    - name: Stage files for upload to GitHub Pages
+      run: |
+        mkdir deploy
+        cp build_rel/client.* deploy/
+        mv deploy/client.html deploy/index.html
+    - name: Upload files to GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./deploy
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-rel
+    permissions:
+      pages: write  # Permissions needed to deploy to GitHub Pages
+      id-token: write  # Permissions needed for OIDC authentication
+    steps:
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4
