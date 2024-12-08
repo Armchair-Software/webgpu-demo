@@ -56,7 +56,7 @@ echo -n "inline constexpr char const *${resourcename}{R\"${shorthash}(" >> "$out
 # content
 if printf '%s\0' "${strip_comment_suffixes[@]}" | grep -Fxzq -- "$suffix"; then
   # strip comments and whitespace-only lines
-  sed "s/\/\/.*//;/^[ ]*$/d" "$infile" >> "$outfile"
+  sed "s/ *\/\/.*//;/^[ ]*$/d" "$infile" >> "$outfile"
 else
   cat "$infile" >> "$outfile"
 fi
