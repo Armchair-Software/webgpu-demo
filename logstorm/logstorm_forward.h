@@ -1,5 +1,4 @@
-#ifndef LOGSTORM_FORWARD_H_INCLUDED
-#define LOGSTORM_FORWARD_H_INCLUDED
+#pragma once
 
 namespace logstorm {
 
@@ -17,5 +16,3 @@ class circular_buffer;
 class manager;
 
 }
-
-#endif // LOGSTORM_FORWARD_H_INCLUDED

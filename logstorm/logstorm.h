@@ -1,5 +1,4 @@
-#ifndef LOGSTORM_H_INCLUDED
-#define LOGSTORM_H_INCLUDED
+#pragma once
 
 /// Defines:
 ///   LOGSTORM_SINGLE_THREADED - Don't use synchronisation to protect sinks.
@@ -15,5 +14,3 @@
 #include "sink/fstream.h"
 #include "sink/file.h"
 #include "sink/circular_buffer.h"
-
-#endif // LOGSTORM_H_INCLUDED

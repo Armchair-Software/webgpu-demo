@@ -1,5 +1,4 @@
-#ifndef LOGSTORM_TIMESTAMP_H_INCLUDED
-#define LOGSTORM_TIMESTAMP_H_INCLUDED
+#pragma once
 
 #include <chrono>
 #include <iomanip>
@@ -73,5 +72,3 @@ public:
 };
 
 }
-
-#endif // LOGSTORM_TIMESTAMP_H_INCLUDED

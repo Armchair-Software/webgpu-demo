@@ -1,5 +1,4 @@
-#ifndef LOGSTORM_SINK_BASE_H_INCLUDED
-#define LOGSTORM_SINK_BASE_H_INCLUDED
+#pragma once
 
 #include <string>
 #include "logstorm/timestamp.h"
@@ -24,5 +23,3 @@ public:
 };
 
 }
-
-#endif // LOGSTORM_SINK_BASE_H_INCLUDED

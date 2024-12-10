@@ -1,5 +1,4 @@
-#ifndef CIRCULAR_BUFFER_H_INCLUDED
-#define CIRCULAR_BUFFER_H_INCLUDED
+#pragma once
 
 #include "base.h"
 #ifndef GUISTORM_SINGLETHREADED
@@ -26,5 +25,3 @@ public:
 };
 
 }
-
-#endif // CIRCULAR_BUFFER_H_INCLUDED

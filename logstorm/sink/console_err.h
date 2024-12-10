@@ -1,5 +1,4 @@
-#ifndef LOGSTORM_SINK_CONSOLE_ERR_H_INCLUDED
-#define LOGSTORM_SINK_CONSOLE_ERR_H_INCLUDED
+#pragma once
 
 #include "base.h"
 #ifndef LOGSTORM_SINGLE_THREADED
@@ -23,5 +22,3 @@ public:
 };
 
 }
-
-#endif // LOGSTORM_SINK_CONSOLE_ERR_H_INCLUDED

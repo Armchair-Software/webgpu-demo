@@ -1,5 +1,4 @@
-#ifndef LOGSTORM_MANAGER_H_INCLUDED
-#define LOGSTORM_MANAGER_H_INCLUDED
+#pragma once
 
 #include <memory>
 #include <type_traits>
@@ -91,5 +90,3 @@ logstorm::manager manager::build_with_sink(Args&&... args) {
 }
 
 }
-
-#endif // LOGSTORM_MANAGER_H_INCLUDED

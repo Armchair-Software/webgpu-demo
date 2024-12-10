@@ -1,5 +1,4 @@
-#ifndef LOGSTORM_SINK_STREAM_H_INCLUDED
-#define LOGSTORM_SINK_STREAM_H_INCLUDED
+#pragma once
 
 #include "base.h"
 #include <ostream>
@@ -25,5 +24,3 @@ public:
 };
 
 }
-
-#endif // LOGSTORM_SINK_STREAM_H_INCLUDED

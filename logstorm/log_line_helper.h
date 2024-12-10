@@ -1,5 +1,4 @@
-#ifndef LOGSTORM_LOG_LINE_HELPER_H_INCLUDED
-#define LOGSTORM_LOG_LINE_HELPER_H_INCLUDED
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -33,5 +32,3 @@ inline constexpr log_line_helper &log_line_helper::operator<<(T const &rhs) {
 }
 
 }
-
-#endif // LOGSTORM_LOG_LINE_HELPER_H_INCLUDED

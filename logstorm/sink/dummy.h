@@ -1,5 +1,4 @@
-#ifndef LOGSTORM_SINK_DUMMY_H_INCLUDED
-#define LOGSTORM_SINK_DUMMY_H_INCLUDED
+#pragma once
 
 #include "base.h"
 #include "logstorm/timestamp.h"
@@ -17,5 +16,3 @@ public:
 };
 
 }
-
-#endif // LOGSTORM_SINK_DUMMY_H_INCLUDED
