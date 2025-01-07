@@ -12,9 +12,7 @@ circular_buffer::circular_buffer(unsigned int this_size, timestamp::types timest
   /// Default constructor
 }
 
-circular_buffer::~circular_buffer() {
-  /// Default destructor
-}
+circular_buffer::~circular_buffer() = default;
 
 void circular_buffer::log(std::string const &log_entry) {
   /// Log this line

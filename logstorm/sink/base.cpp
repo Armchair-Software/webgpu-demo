@@ -7,8 +7,6 @@ base::base(timestamp::types timestamp_type)
   /// Default constructor
 }
 
-base::~base() {
-  /// Default destructor
-}
+base::~base() = default;
 
 }
