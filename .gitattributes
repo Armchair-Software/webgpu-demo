@@ -1,0 +1,4 @@
+# overrides for better parsing by github-linguist
+include/** linguist-vendored
+**/*.h linguist-language=C++
+render/shaders/*.h linguist-generated
