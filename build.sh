@@ -43,7 +43,16 @@ for file in "${compiled_resources[@]}"; do
     ((++compiled_resources_up_to_date))
   fi
 done
-echo "Compiled resources: $((compiled_resources_total - compiled_resources_up_to_date)) updated, $compiled_resources_up_to_date up to date ($compiled_resources_total total)"
+compiled_resources_updated=$((compiled_resources_total - compiled_resources_up_to_date))
+echo "Compiled resources: $compiled_resources_updated updated, $compiled_resources_up_to_date up to date ($compiled_resources_total total)"
+
+if [ "$compiled_resources_updated" != 0 ]; then
+  # validate shaders
+  if ! [ -z "$(which naga)" ]; then
+    echo "Validating shaders with naga-cli"
+    naga --bulk-validate render/shaders/*.wgsl || exit 1
+  fi
+fi
 
 cd "$build_dir"
 
