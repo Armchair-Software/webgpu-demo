@@ -54,8 +54,6 @@ if [ "$compiled_resources_updated" != 0 ]; then
   fi
 fi
 
-cd "$build_dir"
-
 ccache="$(which ccache)"
 if [ -n "$ccache" ]; then
   echo "CCache enabled"
@@ -64,14 +62,13 @@ fi
 
 if [ ! -f "Makefile" ] || [ "../CMakeLists.txt" -nt "Makefile" ]; then
   echo "Running CMAKE to generate Makefile..."
-  emcmake cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .. || exit 1
+  emcmake cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -B "$build_dir" || exit 1
 fi
 
 echo "Running make..."
-#emmake make -j"$procs" VERBOSE=1 "$target" || exit 1
-emmake make -j"$procs" "$target" || exit 1
+#emmake cmake --build "$build_dir" -j"$procs" VERBOSE=1 -t "$target" || exit 1
+emmake cmake --build "$build_dir" -j"$procs" -t "$target" || exit 1
 
-#echo "Assembling resources..."
-#cd ..
-#rsync -ar --progress "resources/"* "$build_dir/"
+echo "Assembling resources..."
+rsync -ar --progress "resources/"* "$build_dir/"
 echo "Done."
