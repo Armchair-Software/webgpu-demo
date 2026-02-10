@@ -45,8 +45,8 @@ public:
 
   void log(std::string const &log_entry);
 
-  template <typename T> inline CONSTEXPR_IF_NO_CLANG void operator()(T entry);
-  template <typename... Args> inline CONSTEXPR_IF_NO_CLANG void operator()(Args&&... entries);
+  template<typename T> inline CONSTEXPR_IF_NO_CLANG void operator()(T entry);
+  template<typename... Args> inline CONSTEXPR_IF_NO_CLANG void operator()(Args&&... entries);
   template<typename T> inline CONSTEXPR_IF_NO_CLANG log_line_helper operator<<(T const &rhs);
 
   template<typename T, class... Args, typename = std::enable_if_t<std::is_base_of<sink::base, T>::value>>
@@ -58,13 +58,13 @@ size_t manager::add_sink(Args&&... args) {
   return add_sink(std::make_shared<T>(args...));
 }
 
-template <typename T>
+template<typename T>
 inline CONSTEXPR_IF_NO_CLANG void manager::operator()(T entry) {
   /// Convenience function to log a single entry
   log_line_helper helper(sinks);
   helper << entry;
 }
-template <typename... Args>
+template<typename... Args>
 inline CONSTEXPR_IF_NO_CLANG void manager::operator()(Args&&... entries) {
   /// Convenience function to log any number of arguments
   log_line_helper helper(sinks);
