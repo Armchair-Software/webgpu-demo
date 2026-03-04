@@ -176,24 +176,20 @@ world_manager.h
   - internal project general utilities
   - specific functional/class includes
 
-### 5.3 Grouping: standard, third-party, project-local
+### 5.3 Include grouping and blank lines
 
 - Keep include groups visually separated by one blank line.
+- Avoid extra blank lines inside a single include group.
 - Avoid interleaving groups unless required by platform/compiler constraints.
 - Prefer alphabetical sorting within each include group.
 - Enforce include sorting with tooling and review; unsorted includes are style violations.
 
-### 5.4 Blank lines between include groups
-
-- Use one blank line between include groups.
-- Avoid extra blank lines inside a single include group.
-
-### 5.5 Forward declaration preferences vs includes
+### 5.4 Forward declaration preferences vs includes
 
 - Prefer forward declarations in headers when only pointer/reference members are needed.
 - Include full headers in `.cpp` where definitions are used.
 
-### 5.6 Include path style (`"..."` vs `<...>`)
+### 5.5 Include path style (`"..."` vs `<...>`)
 
 - Use `"..."` for project-local headers.
 - Use `<...>` for standard library and external libraries.
