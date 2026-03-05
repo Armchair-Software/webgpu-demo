@@ -129,7 +129,7 @@ void webgpu_renderer::init() {
 
     instance.RequestAdapter(
       &adapter_request_options,
-      [](WGPURequestAdapterStatus status_c, WGPUAdapterImpl *adapter_ptr, const char *message, void *data){
+      [](WGPURequestAdapterStatus status_c, WGPUAdapterImpl *adapter_ptr, char const *message, void *data){
         /// Request adapter callback
         auto &renderer{*static_cast<webgpu_renderer*>(data)};
         auto &logger{renderer.logger};
@@ -399,7 +399,7 @@ void webgpu_renderer::init() {
 
         adapter.RequestDevice(
           &device_descriptor,
-          [](WGPURequestDeviceStatus status_c, WGPUDevice device_ptr,  const char *message,  void *data){
+          [](WGPURequestDeviceStatus status_c, WGPUDevice device_ptr, char const *message, void *data){
             /// Request device callback
             auto &renderer{*static_cast<webgpu_renderer*>(data)};
             auto &logger{renderer.logger};
