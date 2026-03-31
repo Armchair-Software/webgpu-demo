@@ -201,7 +201,6 @@ set_source_files_properties(${include_files} PROPERTIES COMPILE_FLAGS "-w")
 target_link_options(client PRIVATE
   ${opt_and_debug_linker_options}
   -lwebsocket.js
-  --bind
   -sALLOW_MEMORY_GROWTH=1
   -sSTACK_SIZE=5mb
   -sWASM_BIGINT
@@ -212,6 +211,10 @@ target_link_options(client PRIVATE
   # don't emit code for node.js etc
   -sENVIRONMENT=web
   --shell-file=${CMAKE_SOURCE_DIR}/html/client.html
+)
+
+target_link_libraries(client
+  PRIVATE embind
 )
 
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
