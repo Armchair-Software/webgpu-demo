@@ -1,5 +1,9 @@
 name: CI build
 
+permissions:
+  actions: read
+  contents: read
+
 on:
   push:
     branches: [ "master" ]
@@ -9,23 +13,52 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    env:
+      EMSCRIPTEN_VERSION: 5.0.4
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup Emscripten toolchain
-      uses: mymindstorm/setup-emsdk@v14
+    - uses: actions/checkout@v6
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2.22
       with:
-        version: 3.1.71
-    - name: build
+        key: ${{ runner.os }}-ccache-${{ env.EMSCRIPTEN_VERSION }}-debug
+    - name: Emscripten cache
+      uses: actions/cache@v5
+      with:
+        path: ${{ runner.temp }}/${{ github.run_id }}/emsdk-main
+        key: ${{ runner.os }}-emsdk-${{ env.EMSCRIPTEN_VERSION }}-debug
+    - name: Setup Emscripten toolchain
+      uses: slowriot/setup-emsdk@v15
+      with:
+        version: ${{ env.EMSCRIPTEN_VERSION }}
+    - name: Build
       run: ./build.sh
 
   build-rel:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      pages: write
+    env:
+      EMSCRIPTEN_VERSION: 5.0.4
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup Emscripten toolchain
-      uses: mymindstorm/setup-emsdk@v14
+    - uses: actions/checkout@v6
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2.22
       with:
-        version: 3.1.71
+        key: ${{ runner.os }}-ccache-${{ env.EMSCRIPTEN_VERSION }}-rel
+    - name: Emscripten cache
+      uses: actions/cache@v5
+      with:
+        path: ${{ runner.temp }}/${{ github.run_id }}/emsdk-main
+        key: ${{ runner.os }}-emsdk-${{ env.EMSCRIPTEN_VERSION }}-rel
+    - name: Setup Emscripten toolchain
+      uses: slowriot/setup-emsdk@v15
+      with:
+        version: ${{ env.EMSCRIPTEN_VERSION }}
     - name: build-rel
       run: CMAKE_BUILD_TYPE=Release ./build.sh
     - name: Stage files for upload to GitHub Pages
@@ -33,12 +66,17 @@ jobs:
         mkdir deploy
         cp build_rel/client.* deploy/
         mv deploy/client.html deploy/index.html
+    - name: Upload files for later stages
+      uses: actions/upload-artifact@v7.0.0
+      with:
+        name: build-rel-artifacts
+        path: ./deploy
     - name: Upload files to GitHub Pages
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v4
       with:
         path: ./deploy
 
-  deploy:
+  deploy-pages:
     runs-on: ubuntu-latest
     needs: build-rel
     permissions:
@@ -46,4 +84,4 @@ jobs:
       id-token: write  # Permissions needed for OIDC authentication
     steps:
     - name: Deploy to GitHub Pages
-      uses: actions/deploy-pages@v4
+      uses: actions/deploy-pages@v5
