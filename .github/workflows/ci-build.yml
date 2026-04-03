@@ -17,7 +17,7 @@ jobs:
       actions: write
       contents: read
     env:
-      EMSCRIPTEN_VERSION: 5.0.4
+      EMSCRIPTEN_VERSION: 4.0.10
     steps:
     - uses: actions/checkout@v6
     - name: ccache
@@ -43,7 +43,7 @@ jobs:
       contents: read
       pages: write
     env:
-      EMSCRIPTEN_VERSION: 5.0.4
+      EMSCRIPTEN_VERSION: 4.0.10
     steps:
     - uses: actions/checkout@v6
     - name: ccache
