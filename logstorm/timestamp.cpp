@@ -1,6 +1,22 @@
 #include "timestamp.h"
+#include <ctime>
+#ifndef LOGSTORM_SINGLE_THREADED
+  #include <mutex>
+#endif // LOGSTORM_SINGLE_THREADED
 
 namespace logstorm {
+
+namespace {
+
+std::tm localtime_copy(std::time_t time) {
+  #ifndef LOGSTORM_SINGLE_THREADED
+    static std::mutex localtime_mutex;
+    std::scoped_lock lock(localtime_mutex);
+  #endif // LOGSTORM_SINGLE_THREADED
+  return *std::localtime(&time);
+}
+
+} // anonymous namespace
 
 timestamp::timestamp(types this_type)
   : type(this_type) {
@@ -16,23 +32,26 @@ std::string timestamp::operator()() {
     return {};
   case types::TIME:
     {
-      std::time_t time = std::time(nullptr);
+      std::time_t time{std::time(nullptr)};
+      std::tm time_info{localtime_copy(time)};
       std::stringstream ss;
-      ss << std::put_time(std::localtime(&time), "%Y-%m-%d ");
+      ss << std::put_time(&time_info, "%Y-%m-%d ");
       return ss.str();
     }
   case types::DATE:
     {
-      std::time_t time = std::time(nullptr);
+      std::time_t time{std::time(nullptr)};
+      std::tm time_info{localtime_copy(time)};
       std::stringstream ss;
-      ss << std::put_time(std::localtime(&time), "%H:%M:%S ");
+      ss << std::put_time(&time_info, "%H:%M:%S ");
       return ss.str();
     }
   case types::DATE_TIME:
     {
-      std::time_t time = std::time(nullptr);
+      std::time_t time{std::time(nullptr)};
+      std::tm time_info{localtime_copy(time)};
       std::stringstream ss;
-      ss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S ");
+      ss << std::put_time(&time_info, "%Y-%m-%d %H:%M:%S ");
       return ss.str();
     }
   case types::UNIX:
@@ -57,5 +76,4 @@ std::string timestamp::operator()() {
   #endif // DISABLE_EXCEPTION_THROWING
 }
 
-
-}
+} // namespace logstorm

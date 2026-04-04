@@ -25,4 +25,4 @@ public:
   ~timestamp();
 };
 
-}
+} // namespace logstorm
