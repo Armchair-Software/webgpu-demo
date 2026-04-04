@@ -1,9 +1,9 @@
 #pragma once
 
 #include "base.h"
-#ifndef GUISTORM_SINGLETHREADED
+#ifndef LOGSTORM_SINGLE_THREADED
   #include <shared_mutex>
-#endif // GUISTORM_SINGLETHREADED
+#endif // LOGSTORM_SINGLE_THREADED
 #include <boost/circular_buffer.hpp>
 
 namespace logstorm::sink {
@@ -13,9 +13,9 @@ class circular_buffer : public base {
 public:
   unsigned int const size{256};
   boost::circular_buffer<std::string> data;
-  #ifndef GUISTORM_SINGLETHREADED
+  #ifndef LOGSTORM_SINGLE_THREADED
     mutable std::shared_mutex data_mutex;
-  #endif // GUISTORM_SINGLETHREADED
+  #endif // LOGSTORM_SINGLE_THREADED
 
   circular_buffer(unsigned int max_lines, timestamp::types timestamp_type = timestamp::types::NONE);
   ~circular_buffer() override;
