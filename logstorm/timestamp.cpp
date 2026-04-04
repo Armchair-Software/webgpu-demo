@@ -11,7 +11,7 @@ namespace {
 std::tm localtime_copy(std::time_t time) {
   #ifndef LOGSTORM_SINGLE_THREADED
     static std::mutex localtime_mutex;
-    std::scoped_lock lock(localtime_mutex);
+    std::scoped_lock lock{localtime_mutex};
   #endif // LOGSTORM_SINGLE_THREADED
   return *std::localtime(&time);
 }
@@ -63,7 +63,7 @@ std::string timestamp::operator()() {
   case types::SINCE_START:
     {
       // give time in seconds to two decimal places
-      std::chrono::duration<float> const time_elapsed = std::chrono::system_clock::now() - time_start;
+      std::chrono::duration<float> const time_elapsed{std::chrono::system_clock::now() - time_start};
       std::stringstream ss;
       ss << std::fixed << std::setprecision(2) << time_elapsed.count() << " ";
       return ss.str();

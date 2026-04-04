@@ -61,13 +61,13 @@ size_t manager::add_sink(Args&&... args) {
 template<typename T>
 inline CONSTEXPR_IF_NO_CLANG void manager::operator()(T entry) {
   /// Convenience function to log a single entry
-  log_line_helper helper(sinks);
+  log_line_helper helper{sinks};
   helper << entry;
 }
 template<typename... Args>
 inline CONSTEXPR_IF_NO_CLANG void manager::operator()(Args&&... entries) {
   /// Convenience function to log any number of arguments
-  log_line_helper helper(sinks);
+  log_line_helper helper{sinks};
   // now this is a hack... this is the hack of hacks.
   using unpack = int[];
   unpack{0, (helper << entries, 0)...};
@@ -76,7 +76,7 @@ inline CONSTEXPR_IF_NO_CLANG void manager::operator()(Args&&... entries) {
 template<typename T>
 inline CONSTEXPR_IF_NO_CLANG log_line_helper manager::operator<<(T const &rhs) {
   /// Produce a log line helper and return it for further streaming
-  log_line_helper helper(sinks);
+  log_line_helper helper{sinks};
   helper << rhs;
   return helper;
 }

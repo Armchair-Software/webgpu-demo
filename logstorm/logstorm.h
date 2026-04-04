@@ -21,4 +21,4 @@
   #include "sink/emscripten_err.h"
   #include "sink/emscripten_dbg.h"
   #include "sink/emscripten_dbg_backtrace.h"
-#endif //__EMSCRIPTEN__
+#endif // __EMSCRIPTEN__

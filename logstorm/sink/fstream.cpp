@@ -14,7 +14,7 @@ void fstream::log(std::string const &log_entry) {
   /// Log this line
   if(stream.good()) {
     #ifndef LOGSTORM_SINGLE_THREADED
-      std::scoped_lock lock(output_mutex);
+      std::scoped_lock lock{output_mutex};
     #endif // LOGSTORM_SINGLE_THREADED
     stream << time() << log_entry << std::endl;
   }
@@ -35,7 +35,7 @@ void fstream::log_fragment(std::string const &log_entry) {
   #else
     if(stream.good()) {
       #ifndef LOGSTORM_SINGLE_THREADED
-        std::scoped_lock lock(output_mutex);
+        std::scoped_lock lock{output_mutex};
       #endif // LOGSTORM_SINGLE_THREADED
       stream << log_entry;
     }

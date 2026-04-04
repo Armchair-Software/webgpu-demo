@@ -17,14 +17,14 @@ circular_buffer::~circular_buffer() = default;
 void circular_buffer::log(std::string const &log_entry) {
   /// Log this line
   #ifndef LOGSTORM_SINGLE_THREADED
-    std::unique_lock lock(data_mutex);                                          // lock for writing (unique)
+    std::unique_lock lock{data_mutex};                                          // lock for writing (unique)
   #endif // LOGSTORM_SINGLE_THREADED
   data.push_back(time() + log_entry);
 }
 void circular_buffer::log_fragment(std::string const &log_entry) {
   /// Log this fragment without ending the line
   #ifndef LOGSTORM_SINGLE_THREADED
-    std::unique_lock lock(data_mutex);                                          // lock for writing (unique)
+    std::unique_lock lock{data_mutex};                                          // lock for writing (unique)
   #endif // LOGSTORM_SINGLE_THREADED
   #ifdef LOGSTORM_COMPOSE_FRAGMENTS_SEPARATELY
     if(line_in_progress.empty()) {                                              // if this is the start of a line, add a timestamp and cache it

@@ -2,7 +2,7 @@
 #ifdef __EMSCRIPTEN__
   // Note, all Emscripten-specific logging functions are noop in non-Emscripten builds
   #include <emscripten/console.h>
-#endif //__EMSCRIPTEN__
+#endif // __EMSCRIPTEN__
 
 namespace logstorm::sink {
 
@@ -17,7 +17,7 @@ void emscripten_dbg_backtrace::log(std::string const &log_entry) {
   /// Log this line
   #ifdef __EMSCRIPTEN__
     ::emscripten_dbg_backtrace((time() + log_entry).c_str());
-  #endif //__EMSCRIPTEN__
+  #endif // __EMSCRIPTEN__
 }
 void emscripten_dbg_backtrace::log_fragment(std::string const &log_entry) {
   /// Log this fragment without ending the line
@@ -34,7 +34,7 @@ void emscripten_dbg_backtrace::log_fragment(std::string const &log_entry) {
     #else
       ::emscripten_dbg_backtrace(log_entry.c_str());
     #endif // LOGSTORM_COMPOSE_FRAGMENTS_SEPARATELY
-  #endif //__EMSCRIPTEN__
+  #endif // __EMSCRIPTEN__
 }
 
 }
