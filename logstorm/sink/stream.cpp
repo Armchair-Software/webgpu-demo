@@ -32,7 +32,7 @@ void stream::log_fragment(std::string const &log_entry) {
         ostream << line_in_progress << std::flush;
       }
       line_in_progress.clear();
-    } else if(log_entry.back() == std::endl) {                                  // if this is a newline with flush, push it to the buffer
+    } else if(log_entry.back() == '\n') {                                       // if this is a newline with flush, push it to the buffer
       if(stream.good()) {
         ostream << line_in_progress;
       }

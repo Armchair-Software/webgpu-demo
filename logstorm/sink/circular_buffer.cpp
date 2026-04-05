@@ -31,7 +31,7 @@ void circular_buffer::log_fragment(std::string const &log_entry) {
       line_in_progress = time();
     }
     line_in_progress += log_entry;
-    if(log_entry.back() == std::endl) {                                         // if this is a newline, push it to the buffer
+    if(log_entry.back() == '\n') {                                              // if this is a newline, push it to the buffer
       data.push_back(line_in_progress);
       line_in_progress.clear();
     }
