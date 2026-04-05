@@ -14,7 +14,9 @@
 #include "sink/console_err.h"
 #include "sink/fstream.h"
 #include "sink/file.h"
-#include "sink/circular_buffer.h"
+#ifdef LOGSTORM_HAS_BOOST
+  #include "sink/circular_buffer.h"
+#endif // LOGSTORM_HAS_BOOST
 
 #ifdef __EMSCRIPTEN__
   #include "sink/emscripten_out.h"

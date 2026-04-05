@@ -6,11 +6,11 @@
 namespace logstorm::sink {
 
 class base {
+protected:
   #ifdef LOGSTORM_COMPOSE_FRAGMENTS_SEPARATELY
     std::string line_in_progress;
   #endif // LOGSTORM_COMPOSE_FRAGMENTS_SEPARATELY
 
-protected:
   timestamp time;
 
 protected:
