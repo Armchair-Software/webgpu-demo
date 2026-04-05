@@ -28,12 +28,12 @@ void stream::log_fragment(std::string const &log_entry) {
     }
     line_in_progress += log_entry;
     if(log_entry.back() == '\n') {                                              // if this is a newline, push it to the buffer and flush
-      if(stream.good()) {
+      if(ostream.good()) {
         ostream << line_in_progress << std::flush;
       }
       line_in_progress.clear();
     } else if(log_entry.back() == '\n') {                                       // if this is a newline with flush, push it to the buffer
-      if(stream.good()) {
+      if(ostream.good()) {
         ostream << line_in_progress;
       }
       line_in_progress.clear();
