@@ -113,12 +113,20 @@ webgpu_renderer::webgpu_renderer(logstorm::manager &this_logger, std::function<v
 
 void webgpu_renderer::init() {
   /// Initialise the WebGPU system
-  // find out about the initial canvas size and the current window and doc sizes
-  window.viewport_size.assign(emscripten::val::global("window")["innerWidth"].as<unsigned int>(),
-                              emscripten::val::global("window")["innerHeight"].as<unsigned int>());
+  // Find the initial framebuffer size. Browser dimensions are CSS pixels, while
+  // WebGPU surfaces and depth textures are sized in device pixels.
+  window.css_viewport_size.assign(
+    emscripten::val::global("window")["innerWidth"].as<unsigned int>(),
+    emscripten::val::global("window")["innerHeight"].as<unsigned int>()
+  );
   window.device_pixel_ratio = emscripten::val::global("window")["devicePixelRatio"].as<float>(); // query device pixel ratio using JS
-  logger << "render::window: Viewport size: " << window.viewport_size << " (device pixels: approx " << static_cast<vec2f>(window.viewport_size) * window.device_pixel_ratio << ")";
-  logger << "render::window: Device pixel ratio: " << window.device_pixel_ratio << " canvas pixels to 1 device pixel (" << static_cast<unsigned int>(std::round(100.0f * window.device_pixel_ratio)) << "% zoom)";
+  window.viewport_size.assign(
+    static_cast<unsigned int>(std::round(static_cast<float>(window.css_viewport_size.x) * window.device_pixel_ratio)),
+    static_cast<unsigned int>(std::round(static_cast<float>(window.css_viewport_size.y) * window.device_pixel_ratio))
+  );
+  logger << "render::window: Viewport size: " << window.css_viewport_size << " (device pixels: approx " << static_cast<vec2f>(window.css_viewport_size) * window.device_pixel_ratio << ")";
+  logger << "render::window: CSS viewport size: " << window.css_viewport_size << " CSS pixels (framebuffer: " << window.viewport_size << " device pixels)";
+  logger << "render::window: Device pixel ratio: " << window.device_pixel_ratio << " device pixels per CSS pixel (" << static_cast<unsigned int>(std::round(100.0f * window.device_pixel_ratio)) << "% scale)";
 
   {
     // create a WebGPU instance
@@ -403,6 +411,12 @@ void webgpu_renderer::init() {
 
 void webgpu_renderer::configure_surface() {
   /// Create or recreate the configured surface for the current viewport size
+  emscripten_set_canvas_element_size(
+    "#canvas",
+    static_cast<int>(window.viewport_size.x),
+    static_cast<int>(window.viewport_size.y)
+  );
+
   wgpu::SurfaceConfiguration surface_configuration{
     .device{webgpu.device},
     .format{webgpu.surface_preferred_format},
@@ -595,9 +609,18 @@ void webgpu_renderer::configure() {
   emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, false,   // target, userdata, use_capture, callback
     ([](int /*event_type*/, EmscriptenUiEvent const *event, void *data) {       // event_type == EMSCRIPTEN_EVENT_RESIZE
       auto &renderer{*static_cast<webgpu_renderer*>(data)};
-      renderer.window.viewport_size.x = static_cast<unsigned int>(event->windowInnerWidth);
-      renderer.window.viewport_size.y = static_cast<unsigned int>(event->windowInnerHeight);
+      renderer.window.css_viewport_size.assign(
+        static_cast<unsigned int>(event->windowInnerWidth),
+        static_cast<unsigned int>(event->windowInnerHeight)
+      );
+      renderer.window.device_pixel_ratio = static_cast<float>(emscripten_get_device_pixel_ratio());
+      vec2ui const framebuffer_size{
+        static_cast<unsigned int>(std::round(static_cast<float>(renderer.window.css_viewport_size.x) * renderer.window.device_pixel_ratio)),
+        static_cast<unsigned int>(std::round(static_cast<float>(renderer.window.css_viewport_size.y) * renderer.window.device_pixel_ratio))
+      };
+      if(framebuffer_size.x == 0 || framebuffer_size.y == 0 || framebuffer_size == renderer.window.viewport_size) return true;
 
+      renderer.window.viewport_size = framebuffer_size;
       renderer.configure_surface();
       renderer.init_depth_texture();
       return true;

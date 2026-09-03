@@ -25,6 +25,7 @@ class webgpu_renderer {
   } webgpu;
 
   struct {
+    vec2ui css_viewport_size;                                                   // browser window viewport size in CSS pixels
     vec2ui viewport_size;                                                       // our idea of the size of the viewport we render to, in real pixels
     float device_pixel_ratio{1.0f};
   } window;
