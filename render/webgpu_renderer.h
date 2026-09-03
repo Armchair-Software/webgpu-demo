@@ -18,8 +18,6 @@ class webgpu_renderer {
     wgpu::BindGroupLayout bind_group_layout;                                    // layout for the uniform bind group
     wgpu::RenderPipeline pipeline;                                              // the render pipeline currently in use
 
-    wgpu::SwapChain swapchain;                                                  // the swapchain providing a texture view to render to
-
     wgpu::Texture depth_texture;                                                // depth buffer
     wgpu::TextureView depth_texture_view;
 
@@ -39,7 +37,7 @@ public:
   void init();
 
 private:
-  void init_swapchain();
+  void configure_surface();
   void init_depth_texture();
 
   void wait_to_configure_loop();

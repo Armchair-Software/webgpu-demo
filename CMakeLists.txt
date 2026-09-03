@@ -148,6 +148,7 @@ target_compile_options(client PRIVATE
   -mavx
   -msimd128
   # emscripten ports
+  --use-port=emdawnwebgpu
   -sUSE_BOOST_HEADERS=1
   -sUSE_FREETYPE=1
   ${exception_compile_options}
@@ -200,12 +201,11 @@ set_source_files_properties(${include_files} PROPERTIES COMPILE_FLAGS "-w")
 
 target_link_options(client PRIVATE
   ${opt_and_debug_linker_options}
+  --use-port=emdawnwebgpu
   -lwebsocket.js
   -sALLOW_MEMORY_GROWTH=1
   -sSTACK_SIZE=5mb
-  -sWASM_BIGINT
   -sELIMINATE_DUPLICATE_FUNCTIONS=1
-  -sUSE_WEBGPU
   ${exception_link_options}
   -sLLD_REPORT_UNDEFINED
   # don't emit code for node.js etc

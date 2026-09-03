@@ -3,6 +3,8 @@
 #include <array>
 #include <set>
 #include <string>
+#include <string_view>
+#include <type_traits>
 #include <vector>
 #include <emscripten.h>
 #include <emscripten/html5.h>
@@ -64,26 +66,41 @@ mat4f make_projection_matrix(vec2f const &viewport_size) {
 }
 
 template<typename Tcpp, typename Tc>
+  requires (!std::is_same_v<Tcpp, Tc>)
 std::string enum_wgpu_name(Tc enum_in) {
   /// Attempt to interpret an enum into its most human-readable form, with fallbacks for unknown types
   /// Tc is the C API enum (WGPU...), Tcpp is the C++ API enum equivalent (wgpu::...)
-  if(auto enum_out_opt{magic_enum::enum_cast<Tcpp>(enum_in)}; enum_out_opt.has_value()) { // first try to cast it to the C++ enum for clearest output
+  using value_type = std::underlying_type_t<Tc>;
+  auto const enum_value{static_cast<value_type>(enum_in)};
+
+  if(auto enum_out_opt{magic_enum::enum_cast<Tcpp>(enum_value)}; enum_out_opt.has_value()) { // first try to cast it to the C++ enum for clearest output
     return std::string{magic_enum::enum_name(*enum_out_opt)};
   }
 
-  if(auto enum_out_opt{magic_enum::enum_cast<Tc>(enum_in)}; enum_out_opt.has_value()) { // fall back to trying the C enum interpretation
+  if(auto enum_out_opt{magic_enum::enum_cast<Tc>(enum_value)}; enum_out_opt.has_value()) { // fall back to trying the C enum interpretation
    return std::string{magic_enum::enum_name(*enum_out_opt)} + " (C binding only)";
   }
 
   std::ostringstream oss;
-  oss << "unknown enum 0x" << std::hex << enum_in;                              // otherwise output the hex value and an explanatory note
+  oss << "unknown enum 0x" << std::hex << enum_value;                           // otherwise output the hex value and an explanatory note
   return oss.str();
 }
 
-template<typename Tcpp, typename Tc>
-std::string enum_wgpu_name(Tcpp enum_in) {
-  /// When passing the C++ version, cast it to the C version
-  return enum_wgpu_name<Tcpp, Tc>(static_cast<Tc>(enum_in));
+template<typename Tenum>
+std::string enum_wgpu_name(Tenum enum_in) {
+  /// Interpret a C++ WebGPU enum directly
+  if(auto const enum_name{magic_enum::enum_name(enum_in)}; !enum_name.empty()) {
+    return std::string{enum_name};
+  }
+
+  std::ostringstream oss;
+  oss << "unknown enum 0x" << std::hex << static_cast<std::underlying_type_t<Tenum>>(enum_in);
+  return oss.str();
+}
+
+std::string_view string_wgpu(wgpu::StringView string_in) {
+  /// Convert Dawn string views to standard string views for logging
+  return static_cast<std::string_view>(string_in);
 }
 
 }
@@ -110,7 +127,7 @@ void webgpu_renderer::init() {
 
     // create a surface
     {
-      wgpu::SurfaceDescriptorFromCanvasHTMLSelector surface_descriptor_from_canvas;
+      wgpu::EmscriptenSurfaceSourceCanvasHTMLSelector surface_descriptor_from_canvas;
       surface_descriptor_from_canvas.selector = "#canvas";
 
       wgpu::SurfaceDescriptor surface_descriptor{
@@ -123,32 +140,34 @@ void webgpu_renderer::init() {
 
     // request an adapter
     wgpu::RequestAdapterOptions adapter_request_options{
-      .compatibleSurface{webgpu.surface},
       .powerPreference{wgpu::PowerPreference::HighPerformance},
+      .compatibleSurface{webgpu.surface},
     };
 
     instance.RequestAdapter(
       &adapter_request_options,
-      [](WGPURequestAdapterStatus status_c, WGPUAdapterImpl *adapter_ptr, char const *message, void *data){
+      wgpu::CallbackMode::AllowSpontaneous,
+      [](wgpu::RequestAdapterStatus status, wgpu::Adapter adapter_in, wgpu::StringView message, webgpu_renderer *renderer_ptr){
         /// Request adapter callback
-        auto &renderer{*static_cast<webgpu_renderer*>(data)};
+        auto &renderer{*renderer_ptr};
         auto &logger{renderer.logger};
         auto &webgpu{renderer.webgpu};
-        if(message) logger << "WebGPU: Request adapter callback message: " << message;
-        if(auto status{static_cast<wgpu::RequestAdapterStatus>(status_c)}; status != wgpu::RequestAdapterStatus::Success) {
-          logger << "ERROR: WebGPU adapter request failure, status " << enum_wgpu_name<wgpu::RequestAdapterStatus>(status_c);
+        if(message.length) logger << "WebGPU: Request adapter callback message: " << string_wgpu(message);
+        if(status != wgpu::RequestAdapterStatus::Success) {
+          logger << "ERROR: WebGPU adapter request failure, status " << enum_wgpu_name<wgpu::RequestAdapterStatus>(status);
           throw std::runtime_error{"WebGPU: Could not get adapter"};
         }
 
         auto &adapter{webgpu.adapter};
-        adapter = wgpu::Adapter::Acquire(adapter_ptr);
+        adapter = std::move(adapter_in);
         if(!adapter) throw std::runtime_error{"WebGPU: Could not acquire adapter"};
+
+        wgpu::SurfaceCapabilities surface_capabilities;
+        webgpu.surface.GetCapabilities(adapter, &surface_capabilities);
 
         // report surface and adapter capabilities
         #ifndef NDEBUG
           {
-            wgpu::SurfaceCapabilities surface_capabilities;
-            webgpu.surface.GetCapabilities(adapter, &surface_capabilities);
             for(size_t i{0}; i != surface_capabilities.formatCount; ++i) {
               logger << "DEBUG: WebGPU surface capabilities: texture formats: " << magic_enum::enum_name(surface_capabilities.formats[i]);
             }
@@ -160,10 +179,13 @@ void webgpu_renderer::init() {
             }
           }
         #endif // NDEBUG
-        webgpu.surface_preferred_format = webgpu.surface.GetPreferredFormat(adapter);
+
+        if(surface_capabilities.formatCount != 0) {
+          webgpu.surface_preferred_format = surface_capabilities.formats[0];
+        }
         logger << "WebGPU surface preferred format for this adapter: " << magic_enum::enum_name(webgpu.surface_preferred_format);
         if(webgpu.surface_preferred_format == wgpu::TextureFormat::Undefined) {
-          webgpu.surface_preferred_format = wgpu::TextureFormat::BGRA8Unorm;
+          webgpu.surface_preferred_format = wgpu::TextureFormat::RGBA8Unorm;
           logger << "WebGPU manually specifying preferred format: " << magic_enum::enum_name(webgpu.surface_preferred_format);
         }
 
@@ -171,85 +193,66 @@ void webgpu_renderer::init() {
           wgpu::AdapterInfo adapter_info;
           adapter.GetInfo(&adapter_info);
           #ifndef NDEBUG
-            logger << "DEBUG: WebGPU adapter info: vendor: " << adapter_info.vendor;
-            logger << "DEBUG: WebGPU adapter info: architecture: " << adapter_info.architecture;
-            logger << "DEBUG: WebGPU adapter info: device: " << adapter_info.device;
-            logger << "DEBUG: WebGPU adapter info: description: " << adapter_info.description;
+            logger << "DEBUG: WebGPU adapter info: vendor: " << string_wgpu(adapter_info.vendor);
+            logger << "DEBUG: WebGPU adapter info: architecture: " << string_wgpu(adapter_info.architecture);
+            logger << "DEBUG: WebGPU adapter info: device: " << string_wgpu(adapter_info.device);
+            logger << "DEBUG: WebGPU adapter info: description: " << string_wgpu(adapter_info.description);
             logger << "DEBUG: WebGPU adapter info: vendorID:deviceID: " << adapter_info.vendorID << ":" << adapter_info.deviceID;
             logger << "DEBUG: WebGPU adapter info: backendType: " << magic_enum::enum_name(adapter_info.backendType);
             logger << "DEBUG: WebGPU adapter info: adapterType: " << magic_enum::enum_name(adapter_info.adapterType);
           #endif // NDEBUG
-          logger << "WebGPU adapter info: " << adapter_info.description << " (" << magic_enum::enum_name(adapter_info.backendType) << ", " << adapter_info.vendor << ", " << adapter_info.architecture << ")";
+          logger << "WebGPU adapter info: " << string_wgpu(adapter_info.description) << " (" << magic_enum::enum_name(adapter_info.backendType) << ", " << string_wgpu(adapter_info.vendor) << ", " << string_wgpu(adapter_info.architecture) << ")";
         }
-        #ifndef NDEBUG
-          {
-            wgpu::AdapterProperties adapter_properties;
-            adapter.GetProperties(&adapter_properties);
-            // TODO: wgpuAdapterGetProperties is deprecated, use wgpuAdapterGetInfo instead - C++ wrapper needs to be updated
-            logger << "DEBUG: WebGPU adapter properties: vendorID: " << adapter_properties.vendorID;
-            logger << "DEBUG: WebGPU adapter properties: vendorName: " << adapter_properties.vendorName;
-            logger << "DEBUG: WebGPU adapter properties: architecture: " << adapter_properties.architecture;
-            logger << "DEBUG: WebGPU adapter properties: deviceID: " << adapter_properties.deviceID;
-            logger << "DEBUG: WebGPU adapter properties: name: " << adapter_properties.name;
-            logger << "DEBUG: WebGPU adapter properties: driverDescription: " << adapter_properties.driverDescription;
-            logger << "DEBUG: WebGPU adapter properties: backendType: " << magic_enum::enum_name(adapter_properties.backendType);
-            logger << "DEBUG: WebGPU adapter properties: adapterType: " << magic_enum::enum_name(adapter_properties.adapterType);
-            logger << "DEBUG: WebGPU adapter properties: compatibilityMode: " << std::boolalpha << adapter_properties.compatibilityMode;
-            logger << "DEBUG: WebGPU adapter properties: nextInChain: " << adapter_properties.nextInChain;
-          }
-        #endif // NDEBUG
         std::set<wgpu::FeatureName> adapter_features;
         {
           // see https://developer.mozilla.org/en-US/docs/Web/API/GPUSupportedFeatures and https://www.w3.org/TR/webgpu/#feature-index
-          auto const count{adapter.EnumerateFeatures(nullptr)};
-          logger << "DEBUG: WebGPU adapter features count: " << count;
-          std::vector<wgpu::FeatureName> adapter_features_arr(count);
-          adapter.EnumerateFeatures(adapter_features_arr.data());
-          for(unsigned int i{0}; i != adapter_features_arr.size(); ++i) {
-            adapter_features.emplace(adapter_features_arr[i]);
+          wgpu::SupportedFeatures adapter_supported_features;
+          adapter.GetFeatures(&adapter_supported_features);
+          logger << "DEBUG: WebGPU adapter features count: " << adapter_supported_features.featureCount;
+          for(size_t i{0}; i != adapter_supported_features.featureCount; ++i) {
+            adapter_features.emplace(adapter_supported_features.features[i]);
           }
         }
         for(auto const feature : adapter_features) {
-          logger << "DEBUG: WebGPU adapter features: " << enum_wgpu_name<wgpu::FeatureName, WGPUFeatureName>(feature);
+          logger << "DEBUG: WebGPU adapter features: " << enum_wgpu_name(feature);
         }
 
-        wgpu::SupportedLimits adapter_limits;
+        wgpu::Limits adapter_limits;
         bool const result{adapter.GetLimits(&adapter_limits)};
         if(!result) throw std::runtime_error{"WebGPU: Could not query adapter limits"};
         #ifndef NDEBUG
           logger << "DEBUG: WebGPU adapter limits result: " << std::boolalpha << result;
           logger << "DEBUG: WebGPU adapter limits nextInChain: " << adapter_limits.nextInChain;
-          logger << "DEBUG: WebGPU adapter limits maxTextureDimension1D: " << adapter_limits.limits.maxTextureDimension1D;
-          logger << "DEBUG: WebGPU adapter limits maxTextureDimension2D: " << adapter_limits.limits.maxTextureDimension2D;
-          logger << "DEBUG: WebGPU adapter limits maxTextureDimension3D: " << adapter_limits.limits.maxTextureDimension3D;
-          logger << "DEBUG: WebGPU adapter limits maxTextureArrayLayers: " << adapter_limits.limits.maxTextureArrayLayers;
-          logger << "DEBUG: WebGPU adapter limits maxBindGroups: " << adapter_limits.limits.maxBindGroups;
-          logger << "DEBUG: WebGPU adapter limits maxBindGroupsPlusVertexBuffers: " << adapter_limits.limits.maxBindGroupsPlusVertexBuffers;
-          logger << "DEBUG: WebGPU adapter limits maxBindingsPerBindGroup: " << adapter_limits.limits.maxBindingsPerBindGroup;
-          logger << "DEBUG: WebGPU adapter limits maxDynamicUniformBuffersPerPipelineLayout: " << adapter_limits.limits.maxDynamicUniformBuffersPerPipelineLayout;
-          logger << "DEBUG: WebGPU adapter limits maxDynamicStorageBuffersPerPipelineLayout: " << adapter_limits.limits.maxDynamicStorageBuffersPerPipelineLayout;
-          logger << "DEBUG: WebGPU adapter limits maxSamplersPerShaderStage: " << adapter_limits.limits.maxSamplersPerShaderStage;
-          logger << "DEBUG: WebGPU adapter limits maxStorageBuffersPerShaderStage: " << adapter_limits.limits.maxStorageBuffersPerShaderStage;
-          logger << "DEBUG: WebGPU adapter limits maxStorageTexturesPerShaderStage: " << adapter_limits.limits.maxStorageTexturesPerShaderStage;
-          logger << "DEBUG: WebGPU adapter limits maxUniformBuffersPerShaderStage: " << adapter_limits.limits.maxUniformBuffersPerShaderStage;
-          logger << "DEBUG: WebGPU adapter limits maxUniformBufferBindingSize: " << adapter_limits.limits.maxUniformBufferBindingSize;
-          logger << "DEBUG: WebGPU adapter limits maxStorageBufferBindingSize: " << adapter_limits.limits.maxStorageBufferBindingSize;
-          logger << "DEBUG: WebGPU adapter limits minUniformBufferOffsetAlignment: " << adapter_limits.limits.minUniformBufferOffsetAlignment;
-          logger << "DEBUG: WebGPU adapter limits minStorageBufferOffsetAlignment: " << adapter_limits.limits.minStorageBufferOffsetAlignment;
-          logger << "DEBUG: WebGPU adapter limits maxVertexBuffers: " << adapter_limits.limits.maxVertexBuffers;
-          logger << "DEBUG: WebGPU adapter limits maxBufferSize: " << adapter_limits.limits.maxBufferSize;
-          logger << "DEBUG: WebGPU adapter limits maxVertexAttributes: " << adapter_limits.limits.maxVertexAttributes;
-          logger << "DEBUG: WebGPU adapter limits maxVertexBufferArrayStride: " << adapter_limits.limits.maxVertexBufferArrayStride;
-          logger << "DEBUG: WebGPU adapter limits maxInterStageShaderComponents: " << adapter_limits.limits.maxInterStageShaderComponents;
-          logger << "DEBUG: WebGPU adapter limits maxInterStageShaderVariables: " << adapter_limits.limits.maxInterStageShaderVariables;
-          logger << "DEBUG: WebGPU adapter limits maxColorAttachments: " << adapter_limits.limits.maxColorAttachments;
-          logger << "DEBUG: WebGPU adapter limits maxColorAttachmentBytesPerSample: " << adapter_limits.limits.maxColorAttachmentBytesPerSample;
-          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupStorageSize: " << adapter_limits.limits.maxComputeWorkgroupStorageSize;
-          logger << "DEBUG: WebGPU adapter limits maxComputeInvocationsPerWorkgroup: " << adapter_limits.limits.maxComputeInvocationsPerWorkgroup;
-          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeX: " << adapter_limits.limits.maxComputeWorkgroupSizeX;
-          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeY: " << adapter_limits.limits.maxComputeWorkgroupSizeY;
-          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeZ: " << adapter_limits.limits.maxComputeWorkgroupSizeZ;
-          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupsPerDimension: " << adapter_limits.limits.maxComputeWorkgroupsPerDimension;
+          logger << "DEBUG: WebGPU adapter limits maxTextureDimension1D: " << adapter_limits.maxTextureDimension1D;
+          logger << "DEBUG: WebGPU adapter limits maxTextureDimension2D: " << adapter_limits.maxTextureDimension2D;
+          logger << "DEBUG: WebGPU adapter limits maxTextureDimension3D: " << adapter_limits.maxTextureDimension3D;
+          logger << "DEBUG: WebGPU adapter limits maxTextureArrayLayers: " << adapter_limits.maxTextureArrayLayers;
+          logger << "DEBUG: WebGPU adapter limits maxBindGroups: " << adapter_limits.maxBindGroups;
+          logger << "DEBUG: WebGPU adapter limits maxBindGroupsPlusVertexBuffers: " << adapter_limits.maxBindGroupsPlusVertexBuffers;
+          logger << "DEBUG: WebGPU adapter limits maxBindingsPerBindGroup: " << adapter_limits.maxBindingsPerBindGroup;
+          logger << "DEBUG: WebGPU adapter limits maxDynamicUniformBuffersPerPipelineLayout: " << adapter_limits.maxDynamicUniformBuffersPerPipelineLayout;
+          logger << "DEBUG: WebGPU adapter limits maxDynamicStorageBuffersPerPipelineLayout: " << adapter_limits.maxDynamicStorageBuffersPerPipelineLayout;
+          logger << "DEBUG: WebGPU adapter limits maxSamplersPerShaderStage: " << adapter_limits.maxSamplersPerShaderStage;
+          logger << "DEBUG: WebGPU adapter limits maxStorageBuffersPerShaderStage: " << adapter_limits.maxStorageBuffersPerShaderStage;
+          logger << "DEBUG: WebGPU adapter limits maxStorageTexturesPerShaderStage: " << adapter_limits.maxStorageTexturesPerShaderStage;
+          logger << "DEBUG: WebGPU adapter limits maxUniformBuffersPerShaderStage: " << adapter_limits.maxUniformBuffersPerShaderStage;
+          logger << "DEBUG: WebGPU adapter limits maxUniformBufferBindingSize: " << adapter_limits.maxUniformBufferBindingSize;
+          logger << "DEBUG: WebGPU adapter limits maxStorageBufferBindingSize: " << adapter_limits.maxStorageBufferBindingSize;
+          logger << "DEBUG: WebGPU adapter limits minUniformBufferOffsetAlignment: " << adapter_limits.minUniformBufferOffsetAlignment;
+          logger << "DEBUG: WebGPU adapter limits minStorageBufferOffsetAlignment: " << adapter_limits.minStorageBufferOffsetAlignment;
+          logger << "DEBUG: WebGPU adapter limits maxVertexBuffers: " << adapter_limits.maxVertexBuffers;
+          logger << "DEBUG: WebGPU adapter limits maxBufferSize: " << adapter_limits.maxBufferSize;
+          logger << "DEBUG: WebGPU adapter limits maxVertexAttributes: " << adapter_limits.maxVertexAttributes;
+          logger << "DEBUG: WebGPU adapter limits maxVertexBufferArrayStride: " << adapter_limits.maxVertexBufferArrayStride;
+          logger << "DEBUG: WebGPU adapter limits maxInterStageShaderVariables: " << adapter_limits.maxInterStageShaderVariables;
+          logger << "DEBUG: WebGPU adapter limits maxColorAttachments: " << adapter_limits.maxColorAttachments;
+          logger << "DEBUG: WebGPU adapter limits maxColorAttachmentBytesPerSample: " << adapter_limits.maxColorAttachmentBytesPerSample;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupStorageSize: " << adapter_limits.maxComputeWorkgroupStorageSize;
+          logger << "DEBUG: WebGPU adapter limits maxComputeInvocationsPerWorkgroup: " << adapter_limits.maxComputeInvocationsPerWorkgroup;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeX: " << adapter_limits.maxComputeWorkgroupSizeX;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeY: " << adapter_limits.maxComputeWorkgroupSizeY;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupSizeZ: " << adapter_limits.maxComputeWorkgroupSizeZ;
+          logger << "DEBUG: WebGPU adapter limits maxComputeWorkgroupsPerDimension: " << adapter_limits.maxComputeWorkgroupsPerDimension;
         #endif // NDEBUG
 
         // specify required features for the device
@@ -284,145 +287,60 @@ void webgpu_renderer::init() {
           required_features_arr.emplace_back(feature);
         }
 
-        // specify required limits for the device
-        struct limit {
-          wgpu::Limits required{
-            .maxTextureDimension2D{3840},
-            .maxTextureArrayLayers{1},
-            .maxBindGroups{1},
-            .maxUniformBuffersPerShaderStage{1},
-            .maxUniformBufferBindingSize{16 * 4},
-            .maxVertexBuffers{1},
-            .maxBufferSize{6 * 2 * sizeof(float)},
-            .maxVertexAttributes{1},
-            .maxVertexBufferArrayStride{2 * sizeof(float)},
-          };
-          wgpu::Limits desired{
-            .maxTextureDimension2D{8192},
-          };
-        } requested_limits;
-
-        auto require_limit{[&]<typename T>(std::string const &name, T available, T required, T desired){
-          constexpr auto undefined{std::numeric_limits<T>::max()};
-          if(required == undefined) {                                           // no hard requirement for this value
-            if(desired == undefined) {                                          //   no specific desire for this value
-              return undefined;                                                 //     we don't care about the value
-            } else {                                                            //   we have a desire for a specific value
-              if(available == undefined) {                                      //     but it's not available
-                logger << "WebGPU: Desired minimum limit for " << name << " is " << desired << " but is unavailable, ignoring";
-                return undefined;                                               //       that's fine, we don't care
-              } else {                                                          //     some limit is available
-                logger << "WebGPU: Desired minimum limit for " << name << " is " << desired << ", requesting " << std::min(desired, available);
-                return std::min(desired, available);                            //       we'll accept our desired amount or the limit, whichever is lowest
-              }
-            }
-          } else {                                                              // we have a hard requirement for this value
-            if(available == undefined) {                                        //   but it's not available
-              logger << "WebGPU: Required minimum limit " << required << " is not available for " << name << " (limit undefined), cannot continue";
-              throw std::runtime_error("WebGPU: Required adapter limits not met (limit undefined)");
-            } else {                                                            //   some limit is available
-              if(available < required) {                                        //     but the limit is below our requirement
-                logger << "WebGPU: Required minimum limit " << required << " is not available for " << name << " (max " << available << "), cannot continue";
-                throw std::runtime_error("WebGPU: Required adapter limits not met");
-              } else {                                                          //     the limit is acceptable
-                if(desired == undefined) {                                      //       we have no desire beyond the basic requirement
-                  logger << "WebGPU: Required minimum limit for " << name << " is " << required << ", available";
-                  return required;                                              //         we'll accept the required minimum
-                } else {                                                        //       we desire a value beyond the basic requirement
-                  assert(desired > required);                                   //         make sure we're not requesting nonsense with desired values below required minimum
-                  logger << "WebGPU: Desired minimum limit for " << name << " is " << desired << ", requesting " << std::min(desired, available);
-                  return std::min(desired, available);                          //         we'll accept our desired amount or the limit, whichever is lowest
-                }
-              }
-            }
-          }
-        }};
-
-        wgpu::RequiredLimits const required_limits{
-          .limits{                                                              // see https://www.w3.org/TR/webgpu/#limit-default
-            #define REQUIRE_LIMIT(limit) .limit{require_limit(#limit, adapter_limits.limits.limit, requested_limits.required.limit, requested_limits.desired.limit)}
-            REQUIRE_LIMIT(maxTextureDimension1D),
-            REQUIRE_LIMIT(maxTextureDimension2D),
-            REQUIRE_LIMIT(maxTextureDimension3D),
-            REQUIRE_LIMIT(maxTextureArrayLayers),
-            REQUIRE_LIMIT(maxBindGroups),
-            REQUIRE_LIMIT(maxBindGroupsPlusVertexBuffers),
-            REQUIRE_LIMIT(maxBindingsPerBindGroup),
-            REQUIRE_LIMIT(maxDynamicUniformBuffersPerPipelineLayout),
-            REQUIRE_LIMIT(maxDynamicStorageBuffersPerPipelineLayout),
-            REQUIRE_LIMIT(maxSampledTexturesPerShaderStage),
-            REQUIRE_LIMIT(maxSamplersPerShaderStage),
-            REQUIRE_LIMIT(maxStorageBuffersPerShaderStage),
-            REQUIRE_LIMIT(maxStorageTexturesPerShaderStage),
-            REQUIRE_LIMIT(maxUniformBuffersPerShaderStage),
-            REQUIRE_LIMIT(maxUniformBufferBindingSize),
-            REQUIRE_LIMIT(maxStorageBufferBindingSize),
-            REQUIRE_LIMIT(minUniformBufferOffsetAlignment),
-            REQUIRE_LIMIT(minStorageBufferOffsetAlignment),
-            // special treatment for minimum rather than maximum limits may be required, see notes for "alignment" at https://www.w3.org/TR/webgpu/#limit-default:
-            //.minUniformBufferOffsetAlignment{adapter_limits.limits.minUniformBufferOffsetAlignment},
-            //.minStorageBufferOffsetAlignment{adapter_limits.limits.minStorageBufferOffsetAlignment},
-            REQUIRE_LIMIT(maxVertexBuffers),
-            REQUIRE_LIMIT(maxBufferSize),
-            REQUIRE_LIMIT(maxVertexAttributes),
-            REQUIRE_LIMIT(maxVertexBufferArrayStride),
-            REQUIRE_LIMIT(maxInterStageShaderComponents),
-            REQUIRE_LIMIT(maxInterStageShaderVariables),
-            REQUIRE_LIMIT(maxColorAttachments),
-            REQUIRE_LIMIT(maxColorAttachmentBytesPerSample),
-            REQUIRE_LIMIT(maxComputeWorkgroupStorageSize),
-            REQUIRE_LIMIT(maxComputeInvocationsPerWorkgroup),
-            REQUIRE_LIMIT(maxComputeWorkgroupSizeX),
-            REQUIRE_LIMIT(maxComputeWorkgroupSizeY),
-            REQUIRE_LIMIT(maxComputeWorkgroupSizeZ),
-            REQUIRE_LIMIT(maxComputeWorkgroupsPerDimension),
-            #undef REQUIRE_LIMIT
-          },
-        };
-
         // request a device
-        wgpu::DeviceDescriptor device_descriptor{
-          .requiredFeatureCount{required_features_arr.size()},
-          .requiredFeatures{required_features_arr.data()},
-          .requiredLimits{&required_limits},
-          .defaultQueue{
-            .label{"Default queue"},
-          },
-          .deviceLostCallback{[](WGPUDeviceLostReason reason_c, char const *message, void *data){
+        wgpu::DeviceDescriptor device_descriptor;
+        device_descriptor.requiredFeatureCount = required_features_arr.size();
+        device_descriptor.requiredFeatures = required_features_arr.data();
+        // The browser-facing requestDevice() path now validates requiredLimits directly.
+        // This demo does not need limits above the WebGPU defaults.
+        device_descriptor.requiredLimits = nullptr;
+        device_descriptor.defaultQueue.label = "Default queue";
+        device_descriptor.SetDeviceLostCallback(
+          wgpu::CallbackMode::AllowSpontaneous,
+          [](wgpu::Device const &, wgpu::DeviceLostReason reason, wgpu::StringView message, webgpu_renderer *renderer_ptr){
             /// Device lost callback
-            auto &renderer{*static_cast<webgpu_renderer*>(data)};
+            auto &renderer{*renderer_ptr};
             auto &logger{renderer.logger};
-            logger << "ERROR: WebGPU lost device, reason " << enum_wgpu_name<wgpu::DeviceLostReason>(reason_c) << ": " << message;
-          }},
-          .deviceLostUserdata{&renderer},
-        };
+            logger << "ERROR: WebGPU lost device, reason " << enum_wgpu_name<wgpu::DeviceLostReason>(reason) << ": " << string_wgpu(message);
+          },
+          &renderer
+        );
+        device_descriptor.SetUncapturedErrorCallback(
+          [](wgpu::Device const &, wgpu::ErrorType type, wgpu::StringView message, webgpu_renderer *renderer_ptr){
+            /// Uncaptured error callback
+            auto &renderer{*renderer_ptr};
+            auto &logger{renderer.logger};
+            logger << "ERROR: WebGPU uncaptured error " << enum_wgpu_name<wgpu::ErrorType>(type) << ": " << string_wgpu(message);
+          },
+          &renderer
+        );
 
         adapter.RequestDevice(
           &device_descriptor,
-          [](WGPURequestDeviceStatus status_c, WGPUDevice device_ptr, char const *message, void *data){
+          wgpu::CallbackMode::AllowSpontaneous,
+          [](wgpu::RequestDeviceStatus status, wgpu::Device device_in, wgpu::StringView message, webgpu_renderer *renderer_ptr){
             /// Request device callback
-            auto &renderer{*static_cast<webgpu_renderer*>(data)};
+            auto &renderer{*renderer_ptr};
             auto &logger{renderer.logger};
             auto &webgpu{renderer.webgpu};
-            if(message) logger << "WebGPU: Request device callback message: " << message;
-            if(auto status{static_cast<wgpu::RequestDeviceStatus>(status_c)}; status != wgpu::RequestDeviceStatus::Success) {
-              logger << "ERROR: WebGPU device request failure, status " << enum_wgpu_name<wgpu::RequestDeviceStatus>(status_c);
+            if(message.length) logger << "WebGPU: Request device callback message: " << string_wgpu(message);
+            if(status != wgpu::RequestDeviceStatus::Success) {
+              logger << "ERROR: WebGPU device request failure, status " << enum_wgpu_name<wgpu::RequestDeviceStatus>(status);
               throw std::runtime_error{"WebGPU: Could not get adapter"};
             }
             auto &device{webgpu.device};
-            device = wgpu::Device::Acquire(device_ptr);
+            device = std::move(device_in);
 
             // report device capabilities
             std::set<wgpu::FeatureName> device_features;
             {
-              auto const count{device.EnumerateFeatures(nullptr)};
+              wgpu::SupportedFeatures device_supported_features;
+              device.GetFeatures(&device_supported_features);
               #ifndef NDEBUG
-                logger << "DEBUG: WebGPU device features count: " << count;
+                logger << "DEBUG: WebGPU device features count: " << device_supported_features.featureCount;
               #endif // NDEBUG
-              std::vector<wgpu::FeatureName> device_features_arr(count);
-              device.EnumerateFeatures(device_features_arr.data());
-              for(unsigned int i{0}; i != device_features_arr.size(); ++i) {
-                device_features.emplace(device_features_arr[i]);
+              for(size_t i{0}; i != device_supported_features.featureCount; ++i) {
+                device_features.emplace(device_supported_features.features[i]);
               }
             }
             for(auto const feature : device_features) {
@@ -430,55 +348,45 @@ void webgpu_renderer::init() {
             }
             #ifndef NDEBUG
               {
-                wgpu::SupportedLimits adapter_limits;
+                wgpu::Limits adapter_limits;
                 bool result{device.GetLimits(&adapter_limits)};
                 logger << "DEBUG: WebGPU device limits result: " << std::boolalpha << result;
                 logger << "DEBUG: WebGPU device limits nextInChain: " << adapter_limits.nextInChain;
-                logger << "DEBUG: WebGPU device limits maxTextureDimension1D: " << adapter_limits.limits.maxTextureDimension1D;
-                logger << "DEBUG: WebGPU device limits maxTextureDimension2D: " << adapter_limits.limits.maxTextureDimension2D;
-                logger << "DEBUG: WebGPU device limits maxTextureDimension3D: " << adapter_limits.limits.maxTextureDimension3D;
-                logger << "DEBUG: WebGPU device limits maxTextureArrayLayers: " << adapter_limits.limits.maxTextureArrayLayers;
-                logger << "DEBUG: WebGPU device limits maxBindGroups: " << adapter_limits.limits.maxBindGroups;
-                logger << "DEBUG: WebGPU device limits maxBindGroupsPlusVertexBuffers: " << adapter_limits.limits.maxBindGroupsPlusVertexBuffers;
-                logger << "DEBUG: WebGPU device limits maxBindingsPerBindGroup: " << adapter_limits.limits.maxBindingsPerBindGroup;
-                logger << "DEBUG: WebGPU device limits maxDynamicUniformBuffersPerPipelineLayout: " << adapter_limits.limits.maxDynamicUniformBuffersPerPipelineLayout;
-                logger << "DEBUG: WebGPU device limits maxDynamicStorageBuffersPerPipelineLayout: " << adapter_limits.limits.maxDynamicStorageBuffersPerPipelineLayout;
-                logger << "DEBUG: WebGPU device limits maxSamplersPerShaderStage: " << adapter_limits.limits.maxSamplersPerShaderStage;
-                logger << "DEBUG: WebGPU device limits maxStorageBuffersPerShaderStage: " << adapter_limits.limits.maxStorageBuffersPerShaderStage;
-                logger << "DEBUG: WebGPU device limits maxStorageTexturesPerShaderStage: " << adapter_limits.limits.maxStorageTexturesPerShaderStage;
-                logger << "DEBUG: WebGPU device limits maxUniformBuffersPerShaderStage: " << adapter_limits.limits.maxUniformBuffersPerShaderStage;
-                logger << "DEBUG: WebGPU device limits maxUniformBufferBindingSize: " << adapter_limits.limits.maxUniformBufferBindingSize;
-                logger << "DEBUG: WebGPU device limits maxStorageBufferBindingSize: " << adapter_limits.limits.maxStorageBufferBindingSize;
-                logger << "DEBUG: WebGPU device limits minUniformBufferOffsetAlignment: " << adapter_limits.limits.minUniformBufferOffsetAlignment;
-                logger << "DEBUG: WebGPU device limits minStorageBufferOffsetAlignment: " << adapter_limits.limits.minStorageBufferOffsetAlignment;
-                logger << "DEBUG: WebGPU device limits maxVertexBuffers: " << adapter_limits.limits.maxVertexBuffers;
-                logger << "DEBUG: WebGPU device limits maxBufferSize: " << adapter_limits.limits.maxBufferSize;
-                logger << "DEBUG: WebGPU device limits maxVertexAttributes: " << adapter_limits.limits.maxVertexAttributes;
-                logger << "DEBUG: WebGPU device limits maxVertexBufferArrayStride: " << adapter_limits.limits.maxVertexBufferArrayStride;
-                logger << "DEBUG: WebGPU device limits maxInterStageShaderComponents: " << adapter_limits.limits.maxInterStageShaderComponents;
-                logger << "DEBUG: WebGPU device limits maxInterStageShaderVariables: " << adapter_limits.limits.maxInterStageShaderVariables;
-                logger << "DEBUG: WebGPU device limits maxColorAttachments: " << adapter_limits.limits.maxColorAttachments;
-                logger << "DEBUG: WebGPU device limits maxColorAttachmentBytesPerSample: " << adapter_limits.limits.maxColorAttachmentBytesPerSample;
-                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupStorageSize: " << adapter_limits.limits.maxComputeWorkgroupStorageSize;
-                logger << "DEBUG: WebGPU device limits maxComputeInvocationsPerWorkgroup: " << adapter_limits.limits.maxComputeInvocationsPerWorkgroup;
-                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupSizeX: " << adapter_limits.limits.maxComputeWorkgroupSizeX;
-                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupSizeY: " << adapter_limits.limits.maxComputeWorkgroupSizeY;
-                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupSizeZ: " << adapter_limits.limits.maxComputeWorkgroupSizeZ;
-                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupsPerDimension: " << adapter_limits.limits.maxComputeWorkgroupsPerDimension;
+                logger << "DEBUG: WebGPU device limits maxTextureDimension1D: " << adapter_limits.maxTextureDimension1D;
+                logger << "DEBUG: WebGPU device limits maxTextureDimension2D: " << adapter_limits.maxTextureDimension2D;
+                logger << "DEBUG: WebGPU device limits maxTextureDimension3D: " << adapter_limits.maxTextureDimension3D;
+                logger << "DEBUG: WebGPU device limits maxTextureArrayLayers: " << adapter_limits.maxTextureArrayLayers;
+                logger << "DEBUG: WebGPU device limits maxBindGroups: " << adapter_limits.maxBindGroups;
+                logger << "DEBUG: WebGPU device limits maxBindGroupsPlusVertexBuffers: " << adapter_limits.maxBindGroupsPlusVertexBuffers;
+                logger << "DEBUG: WebGPU device limits maxBindingsPerBindGroup: " << adapter_limits.maxBindingsPerBindGroup;
+                logger << "DEBUG: WebGPU device limits maxDynamicUniformBuffersPerPipelineLayout: " << adapter_limits.maxDynamicUniformBuffersPerPipelineLayout;
+                logger << "DEBUG: WebGPU device limits maxDynamicStorageBuffersPerPipelineLayout: " << adapter_limits.maxDynamicStorageBuffersPerPipelineLayout;
+                logger << "DEBUG: WebGPU device limits maxSamplersPerShaderStage: " << adapter_limits.maxSamplersPerShaderStage;
+                logger << "DEBUG: WebGPU device limits maxStorageBuffersPerShaderStage: " << adapter_limits.maxStorageBuffersPerShaderStage;
+                logger << "DEBUG: WebGPU device limits maxStorageTexturesPerShaderStage: " << adapter_limits.maxStorageTexturesPerShaderStage;
+                logger << "DEBUG: WebGPU device limits maxUniformBuffersPerShaderStage: " << adapter_limits.maxUniformBuffersPerShaderStage;
+                logger << "DEBUG: WebGPU device limits maxUniformBufferBindingSize: " << adapter_limits.maxUniformBufferBindingSize;
+                logger << "DEBUG: WebGPU device limits maxStorageBufferBindingSize: " << adapter_limits.maxStorageBufferBindingSize;
+                logger << "DEBUG: WebGPU device limits minUniformBufferOffsetAlignment: " << adapter_limits.minUniformBufferOffsetAlignment;
+                logger << "DEBUG: WebGPU device limits minStorageBufferOffsetAlignment: " << adapter_limits.minStorageBufferOffsetAlignment;
+                logger << "DEBUG: WebGPU device limits maxVertexBuffers: " << adapter_limits.maxVertexBuffers;
+                logger << "DEBUG: WebGPU device limits maxBufferSize: " << adapter_limits.maxBufferSize;
+                logger << "DEBUG: WebGPU device limits maxVertexAttributes: " << adapter_limits.maxVertexAttributes;
+                logger << "DEBUG: WebGPU device limits maxVertexBufferArrayStride: " << adapter_limits.maxVertexBufferArrayStride;
+                logger << "DEBUG: WebGPU device limits maxInterStageShaderVariables: " << adapter_limits.maxInterStageShaderVariables;
+                logger << "DEBUG: WebGPU device limits maxColorAttachments: " << adapter_limits.maxColorAttachments;
+                logger << "DEBUG: WebGPU device limits maxColorAttachmentBytesPerSample: " << adapter_limits.maxColorAttachmentBytesPerSample;
+                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupStorageSize: " << adapter_limits.maxComputeWorkgroupStorageSize;
+                logger << "DEBUG: WebGPU device limits maxComputeInvocationsPerWorkgroup: " << adapter_limits.maxComputeInvocationsPerWorkgroup;
+                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupSizeX: " << adapter_limits.maxComputeWorkgroupSizeX;
+                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupSizeY: " << adapter_limits.maxComputeWorkgroupSizeY;
+                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupSizeZ: " << adapter_limits.maxComputeWorkgroupSizeZ;
+                logger << "DEBUG: WebGPU device limits maxComputeWorkgroupsPerDimension: " << adapter_limits.maxComputeWorkgroupsPerDimension;
               }
             #endif // NDEBUG
 
-            device.SetUncapturedErrorCallback(
-              [](WGPUErrorType type, char const *message, void *data){
-                /// Uncaptured error callback
-                auto &renderer{*static_cast<webgpu_renderer*>(data)};
-                auto &logger{renderer.logger};
-                logger << "ERROR: WebGPU uncaptured error " << enum_wgpu_name<wgpu::ErrorType>(type) << ": " << message;
-              },
-              &renderer
-            );
           },
-          data
+          &renderer
         );
       },
       this
@@ -493,19 +401,18 @@ void webgpu_renderer::init() {
   std::unreachable();
 }
 
-void webgpu_renderer::init_swapchain() {
-  /// Create or recreate the swapchain for the current viewport size
-  logger << "WebGPU creating swapchain";
-
-  wgpu::SwapChainDescriptor swapchain_descriptor{
-    .label{"Swapchain 1"},
-    .usage{wgpu::TextureUsage::RenderAttachment},
+void webgpu_renderer::configure_surface() {
+  /// Create or recreate the configured surface for the current viewport size
+  wgpu::SurfaceConfiguration surface_configuration{
+    .device{webgpu.device},
     .format{webgpu.surface_preferred_format},
-    .width{ window.viewport_size.x},
+    .usage{wgpu::TextureUsage::RenderAttachment},
+    .width{window.viewport_size.x},
     .height{window.viewport_size.y},
+    .alphaMode{wgpu::CompositeAlphaMode::Auto},
     .presentMode{wgpu::PresentMode::Fifo},
   };
-  webgpu.swapchain = webgpu.device.CreateSwapChain(webgpu.surface, &swapchain_descriptor);
+  webgpu.surface.Configure(&surface_configuration);
 }
 
 void webgpu_renderer::init_depth_texture() {
@@ -563,25 +470,14 @@ void webgpu_renderer::wait_to_configure_loop() {
 void webgpu_renderer::configure() {
   /// When the device is ready, configure the WebGPU system
   logger << "WebGPU device ready, configuring surface";
-  {
-    wgpu::SurfaceConfiguration surface_configuration{
-      .device{webgpu.device},
-      .format{webgpu.surface_preferred_format},
-      .viewFormats{nullptr},
-      .width{ window.viewport_size.x},
-      .height{window.viewport_size.y},
-    };
-    webgpu.surface.Configure(&surface_configuration);
-  }
-
-  init_swapchain();
+  configure_surface();
 
   logger << "WebGPU acquiring queue";
   webgpu.queue = webgpu.device.GetQueue();
 
   logger << "WebGPU assembling shaders";
   {
-    wgpu::ShaderModuleWGSLDescriptor shader_module_wgsl_decriptor;
+    wgpu::ShaderSourceWGSL shader_module_wgsl_decriptor;
     shader_module_wgsl_decriptor.code = render::shaders::default_wgsl;
     wgpu::ShaderModuleDescriptor shader_module_descriptor{
       .nextInChain{&shader_module_wgsl_decriptor},
@@ -658,9 +554,6 @@ void webgpu_renderer::configure() {
         .type{wgpu::BufferBindingType::Uniform},
         .minBindingSize{sizeof(uniforms)},
       },
-      .sampler{},                                                               // SamplerBindingLayout
-      .texture{},                                                               // TextureBindingLayout
-      .storageTexture{},                                                        // StorageTextureBindingLayout
     };
     wgpu::BindGroupLayoutDescriptor bind_group_layout_descriptor{
       .label{"Bind group layout 1"},
@@ -705,7 +598,7 @@ void webgpu_renderer::configure() {
       renderer.window.viewport_size.x = static_cast<unsigned int>(event->windowInnerWidth);
       renderer.window.viewport_size.y = static_cast<unsigned int>(event->windowInnerHeight);
 
-      renderer.init_swapchain();
+      renderer.configure_surface();
       renderer.init_depth_texture();
       return true;
     })
@@ -714,8 +607,15 @@ void webgpu_renderer::configure() {
 
 void webgpu_renderer::draw() {
   /// Draw a frame
-  wgpu::TextureView texture_view{webgpu.swapchain.GetCurrentTextureView()};
-  if(!texture_view) throw std::runtime_error{"Could not get current texture view from swap chain"};
+  wgpu::SurfaceTexture surface_texture;
+  webgpu.surface.GetCurrentTexture(&surface_texture);
+  if(surface_texture.status != wgpu::SurfaceGetCurrentTextureStatus::SuccessOptimal
+     && surface_texture.status != wgpu::SurfaceGetCurrentTextureStatus::SuccessSuboptimal) {
+    throw std::runtime_error{"Could not get current texture from surface"};
+  }
+
+  wgpu::TextureView texture_view{surface_texture.texture.CreateView()};
+  if(!texture_view) throw std::runtime_error{"Could not get current texture view from surface"};
 
   {
     wgpu::CommandEncoderDescriptor command_encoder_descriptor{
