@@ -69,6 +69,4 @@ echo "Running make..."
 #emmake cmake --build "$build_dir" -j"$procs" VERBOSE=1 -t "$target" || exit 1
 emmake cmake --build "$build_dir" -j"$procs" -t "$target" || exit 1
 
-echo "Assembling resources..."
-rsync -ar --progress "resources/"* "$build_dir/"
 echo "Done."
