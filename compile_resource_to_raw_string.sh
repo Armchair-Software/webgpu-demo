@@ -2,8 +2,8 @@
 
 # the following are file types we strip C-style comments for:
 strip_comment_suffixes=(
-  "wgsl"
   "glsl"
+  "wgsl"
 )
 
 infile="$1"
