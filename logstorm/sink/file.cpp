@@ -3,7 +3,7 @@
 
 namespace logstorm::sink {
 
-file::file(std::string const &target_filename, timestamp::types timestamp_type)
+file::file(std::filesystem::path const &target_filename, timestamp::types timestamp_type)
   : base(timestamp_type),
     stream(target_filename, std::ios_base::app) {
   /// Default constructor

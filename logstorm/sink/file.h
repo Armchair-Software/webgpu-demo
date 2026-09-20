@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base.h"
+#include <filesystem>
 #include <fstream>
 #ifndef LOGSTORM_SINGLE_THREADED
   #include <mutex>
@@ -16,7 +17,7 @@ class file : public base {
   #endif // LOGSTORM_SINGLE_THREADED
 
 public:
-  file(std::string const &target_filename, timestamp::types timestamp_type = timestamp::types::DATE_TIME);
+  file(std::filesystem::path const &target_filename, timestamp::types timestamp_type = timestamp::types::DATE_TIME);
   virtual ~file() override;
 
   virtual void log(std::string const &log_entry) override final;

@@ -9,11 +9,11 @@
 #include "manager.h"
 #include "timestamp.h"
 #include "sink/dummy.h"
-#include "sink/stream.h"
 #include "sink/console.h"
 #include "sink/console_err.h"
-#include "sink/fstream.h"
 #include "sink/file.h"
+#include "sink/fstream.h"
+#include "sink/stream.h"
 #ifdef LOGSTORM_HAS_BOOST
   #include "sink/circular_buffer.h"
 #endif // LOGSTORM_HAS_BOOST
