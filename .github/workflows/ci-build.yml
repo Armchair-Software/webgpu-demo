@@ -14,6 +14,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  EMSCRIPTEN_VERSION: 'tot'
+
 jobs:
   skip-duplicate:
     runs-on: ubuntu-latest
@@ -43,8 +46,6 @@ jobs:
     permissions:
       actions: write
       contents: read
-    env:
-      EMSCRIPTEN_VERSION: 5.0.4
     steps:
     - uses: actions/checkout@v6
     - name: ccache
@@ -71,8 +72,6 @@ jobs:
       actions: write
       contents: read
       pages: write
-    env:
-      EMSCRIPTEN_VERSION: 5.0.4
     steps:
     - uses: actions/checkout@v6
     - name: ccache
