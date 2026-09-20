@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <chrono>
 #include <iomanip>
 #include <sstream>
@@ -9,7 +10,7 @@ namespace logstorm {
 class timestamp {
   std::chrono::time_point<std::chrono::system_clock> time_start{std::chrono::system_clock::now()};
 public:
-  enum class types {
+  enum class types : uint8_t {
     NONE,
     TIME,
     DATE,
